@@ -88,16 +88,20 @@ def verify_deep_dive_2():
 
     assert abs(sim_w1 - 5.29) < 0.1, f"Simulated emergency wait mismatch: {sim_w1}"
     assert abs(sim_w1_ci - 1.56) < 0.1, f"Simulated emergency CI mismatch: {sim_w1_ci}"
-    assert abs(sim_w2 - 57.26) < 0.5, f"Simulated elective wait mismatch: {sim_w2}"
+    assert abs(sim_w2 - 57.41) < 0.5, f"Simulated elective wait mismatch: {sim_w2}"
     assert abs(sim_w2_ci - 35.10) < 0.5, f"Simulated elective CI mismatch: {sim_w2_ci}"
     assert sim_w2 > sim_w1, f"Priority discipline inverted: elective={sim_w2}, emergency={sim_w1}"
+    assert sim_res["total_censored_patients"] == 0, f"Unresolved censored patients remain: {sim_res['total_censored_patients']}"
+    assert sim_res["post_warmup_arrivals_emergency"] == sim_res["observed_service_starts_emergency"]
+    assert sim_res["post_warmup_arrivals_elective"] == sim_res["observed_service_starts_elective"]
+    assert sim_res["max_drain_end_days"] >= sim_res["arrival_horizon_days"]
     assert sim_res["emergency_wait_mins"]["ci_lower"] <= w1_days * 1440.0 <= sim_res["emergency_wait_mins"]["ci_upper"]
     assert sim_res["elective_wait_mins"]["ci_lower"] <= w2_days * 1440.0 <= sim_res["elective_wait_mins"]["ci_upper"]
     
     print(f"  PASS: Sizing c* = 293 (Buffer = +23.7 beds, B = {p_block_293*100:.2f}%).")
     print(f"  PASS: Priority queue heuristic: Emer = {w1_days*24*60:.1f}m ({w1_days*24:.2f}h), Elec = {w2_days*24*60:.1f}m ({w2_days*24:.2f}h), Mean = {wm_days*24*60:.1f}m.")
     print(f"  PASS: Heuristic internal consistency verified (weighted average = FCFS baseline = {wm_days*24*60:.1f}m).")
-    print(f"  PASS: 10-Replication Priority DES validated: Emer = {sim_w1:.2f} +/- {sim_w1_ci:.2f}m, Elec = {sim_w2:.2f} +/- {sim_w2_ci:.2f}m ({sim_res['elective_wait_hours']['mean']:.2f}h).")
+    print(f"  PASS: 10-Replication Priority DES validated (Drained, 0 censored): Emer = {sim_w1:.2f} +/- {sim_w1_ci:.2f}m, Elec = {sim_w2:.2f} +/- {sim_w2_ci:.2f}m ({sim_res['elective_wait_hours']['mean']:.2f}h), Drain end max = {sim_res['max_drain_end_days']:.2f}d.")
 
 
 def verify_deep_dive_3():

@@ -147,15 +147,15 @@ $$\bar{W}_q = \frac{\lambda_1 W_{q,1} + \lambda_2 W_{q,2}}{\lambda_1 + \lambda_2
 This matches the FCFS mean delay ($W_q^{\text{FCFS}} = 0.0232$ days = 33.4 minutes). This identity reflects the algebraic internal consistency of the selected heuristic weighting scheme rather than an independent validation of Kleinrock's conservation law in multi-server priority systems.
 
 ### Validation Against Discrete-Event Simulation (DES)
-To evaluate the heuristic approximation against empirical sample paths, we implemented a two-class non-preemptive multi-server priority DES in `src.priority_simulation` and executed 10 independent replications ($c = 293, \lambda_1 = 30.0, \lambda_2 = 20.0, \mu = 0.18567$, 730 days per replication with a 100-day time-based warm-up):
+To evaluate the heuristic approximation against empirical sample paths, we implemented a two-class non-preemptive multi-server priority DES in `src.priority_simulation` and executed 10 independent replications ($c = 293, \lambda_1 = 30.0, \lambda_2 = 20.0, \mu = 0.18567$, 730-day nominal arrival horizon with a 100-day warm-up). To prevent right-censoring of queued patients at the observation horizon, arrivals cease at $T = 730$ days while departures continue until all post-warmup arrivals have begun service (system drain completed at an average of $730.04$ days and a maximum of $730.35$ days, yielding 0 censored patients):
 
 | Priority Class / Metric | Evaluated Sample Size (Per Rep / Total) | Analytical Heuristic | 10-Replication DES (Mean $\pm$ 95% CI) | Observed Replication Range | Methodological Assessment |
 | :--- | :---: | :---: | :---: | :---: | :--- |
 | **Emergency Wait ($W_{q,1}$)** | 18,890 / 188,900 patients | **6.05 mins** (0.0042 d) | **$5.29 \pm 1.56$ mins** | $3.23$ to $11.07$ mins | Heuristic falls within 95% CI ($[3.73, 6.85]$ mins) |
-| **Elective Wait ($W_{q,2}$)** | 12,677 / 126,770 patients | **74.45 mins** (0.0517 d, 1.24 h) | **$57.26 \pm 35.10$ mins** ($0.95 \pm 0.59$ h) | $19.38$ to $193.11$ mins ($0.32$ to $3.22$ h) | Heuristic falls within 95% CI ($[22.16, 92.36]$ mins) |
-| **Overall Mean Wait ($\bar{W}_q$)** | 31,567 / 315,670 patients | **33.41 mins** (0.0232 d, 0.56 h) | **$26.21 \pm 15.15$ mins** | $9.76$ to $84.87$ mins | Both methods capture systemic queue pooling |
+| **Elective Wait ($W_{q,2}$)** | 12,680 / 126,800 patients | **74.45 mins** (0.0517 d, 1.24 h) | **$57.41 \pm 35.10$ mins** ($0.96 \pm 0.58$ h) | $19.38$ to $193.11$ mins ($0.32$ to $3.22$ h) | Heuristic falls within 95% CI ($[22.31, 92.51]$ mins) |
+| **Overall Mean Wait ($\bar{W}_q$)** | 31,570 / 315,700 patients | **33.41 mins** (0.0232 d, 0.56 h) | **$26.27 \pm 15.15$ mins** | $9.76$ to $84.87$ mins | Both methods capture systemic queue pooling |
 
-*Methodological Note on Bound Claims and Variance:* The analytical heuristic point estimates ($W_{q,1} = 6.05$ mins, $W_{q,2} = 74.45$ mins) exceed the 10-replication sample averages ($5.29$ mins and $57.26$ mins); however, we do **not** claim the heuristic is a guaranteed "conservative upper bound." At heavy utilization ($\rho \approx 91.9\%$), multi-server queue dynamics exhibit substantial autocorrelated variance across multi-year sample paths (with individual replication elective waits spanning from $19.38$ mins up to $193.11$ mins). The heuristic instead serves as an expected-value approximation that comfortably lies within the empirical 95% confidence intervals. Both analytical and simulation models demonstrate an order-of-magnitude reduction in emergency patient queue delay relative to scheduled elective admissions.
+*Methodological Note on Bound Claims, Drain Policy, and Variance:* The analytical heuristic point estimates ($W_{q,1} = 6.05$ mins, $W_{q,2} = 74.45$ mins) exceed the 10-replication sample averages ($5.29$ mins and $57.41$ mins); however, we do **not** claim the heuristic is a guaranteed "conservative upper bound." Draining queued arrivals eliminates right-censoring bias, ensuring that all 315,700 post-warmup arrivals are evaluated (0 censored patients across all 10 replications). At heavy utilization ($\rho \approx 91.9\%$), multi-server queue dynamics exhibit substantial autocorrelated variance across multi-year sample paths (with individual replication elective waits spanning from $19.38$ mins up to $193.11$ mins). The heuristic instead serves as an expected-value approximation that comfortably lies within the empirical 95% confidence intervals. Both analytical and simulation models demonstrate an order-of-magnitude reduction in emergency patient queue delay relative to scheduled elective admissions.
 
 ### Clinical Interpretation
 * In acute emergency medicine, minimizing pre-admission boarding directly supports clinical intervention windows (e.g., target 4-hour ED disposition benchmarks).
@@ -244,11 +244,12 @@ print(f"  Elective Wq2  : {wq2:.5f} days = {wq2*24*60:.1f} mins ({wq2*24:.2f} hr
 print(f"  FCFS Baseline : {wq_fcfs:.5f} days = {wq_fcfs*24*60:.1f} mins ({wq_fcfs*24:.2f} hrs)")
 
 # 3. Reproducible Priority DES (10 Replications x 730 days)
-print("\nRunning Priority Discrete-Event Simulation (10 replications)...")
+print("\nRunning Priority Discrete-Event Simulation (10 replications with queue drain)...")
 sim_res = run_priority_replications(n_replications=10, c=c_optimal, lambda_emergency=l1, lambda_elective=l2, mu=mu, sim_days=730.0, warmup_days=100.0, base_seed=1000)
 print(f"  DES Emergency Wait: {sim_res['emergency_wait_mins']['mean']:.2f} +/- {sim_res['emergency_wait_mins']['ci_95']:.2f} mins")
 print(f"  DES Elective Wait : {sim_res['elective_wait_mins']['mean']:.2f} +/- {sim_res['elective_wait_mins']['ci_95']:.2f} mins ({sim_res['elective_wait_hours']['mean']:.2f} hrs)")
 print(f"  DES Overall Mean  : {sim_res['total_wait_mins']['mean']:.2f} +/- {sim_res['total_wait_mins']['ci_95']:.2f} mins")
+print(f"  Drain Performance : Max drain = {sim_res['max_drain_end_days']:.2f}d (Arrival horizon = {sim_res['arrival_horizon_days']:.0f}d), Censored = {sim_res['total_censored_patients']}")
 ```
 
 ---

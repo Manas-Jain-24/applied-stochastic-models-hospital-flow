@@ -88,13 +88,28 @@ This document records the exact corrections, recalibrations, and alignment chang
   * Implemented an event-calendar (`heapq`) two-class non-preemptive multi-server priority DES engine.
   * Parameters: $c = 293$ beds, $\lambda_1 = 30.0$ emergency/day, $\lambda_2 = 20.0$ elective/day, $\mu = 0.18567\text{ days}^{-1}$.
   * Features time-based warm-up (100 days), class-specific wait tracking for completed patients, independent random number stream control, and multi-replication aggregation with Student-t 95% confidence intervals.
+  * **Simulation Methodology Correction (Drained Observation Horizon):**
+    * Separated the arrival horizon ($T_{\text{arr}} = 730$ days) from the observation/drain horizon.
+    * Arrivals cease strictly at $T = 730$ days. The simulation then continues processing departures until every patient who arrived post-warmup has entered service (or the system is empty).
+    * Eliminates right-censoring of queued patients at the simulation boundary, which previously downward-biased elective wait estimates.
+    * Tracks and documents `arrival_horizon_days`, `drain_end_days`, `post_warmup_arrivals_emergency`, `post_warmup_arrivals_elective`, `observed_service_starts_emergency`, `observed_service_starts_elective`, and `censored_patients_total` (guaranteed strictly 0).
+  * **Strict Input Validation:**
+    * Validates $c > 0$ (positive integer), $\lambda_1 > 0, \lambda_2 > 0, \mu > 0, T > T_{\text{warmup}} \ge 0$, and $n_{\text{replications}} > 0$.
 * **Unit Testing Suite Expansion ([`tests/test_priority_simulation.py`](../tests/test_priority_simulation.py)):**
-  * Created unit tests validating single-run event processing and multi-replication aggregation, expanding test suite from 33 to 35 passing tests.
-* **Multi-Replication DES Empirical Findings:**
-  * Replaced single 1,200-day sample-path figures with 10 independent replications (730 days each, 100-day warmup, evaluating ~315,670 total completed patients):
-    * Emergency Wait ($W_{q,1}$): $5.29 \pm 1.56$ mins ($95\%\text{ CI}: [3.73, 6.85]$ mins; range $[3.23, 11.07]$ mins; sample size: 18,890 patients/rep).
-    * Elective Wait ($W_{q,2}$): $57.26 \pm 35.10$ mins ($95\%\text{ CI}: [22.16, 92.36]$ mins; range $[19.38, 193.11]$ mins; sample size: 12,677 patients/rep).
-    * Overall Wait ($\bar{W}_q$): $26.21 \pm 15.15$ mins ($95\%\text{ CI}: [11.06, 41.36]$ mins; range $[9.76, 84.87]$ mins; sample size: 31,567 patients/rep).
+  * Created unit tests covering:
+    1. Single-run event processing and drain completion.
+    2. Deliberately congested queue proving drain occurs beyond the arrival horizon with 0 censored patients.
+    3. Equality between post-warmup arrivals and recorded wait samples.
+    4. Multi-replication statistical aggregation.
+    5. Input parameter validation raising `ValueError` on invalid inputs.
+  * Expanded repository unit test suite from 33 to 38 passing tests.
+* **Multi-Replication DES Empirical Findings (Drained, 0 Censored):**
+  * 10 independent replications (730-day arrival horizon, 100-day warmup, evaluating 315,700 total completed patients):
+    * Emergency Wait ($W_{q,1}$): $5.29 \pm 1.56$ mins ($95\%\text{ CI}: [3.73, 6.85]$ mins; range $[3.23, 11.07]$ mins; sample size: 18,890 patients/rep; 188,900 total).
+    * Elective Wait ($W_{q,2}$): $57.41 \pm 35.10$ mins ($95\%\text{ CI}: [22.31, 92.51]$ mins; range $[19.38, 193.11]$ mins; sample size: 12,680 patients/rep; 126,800 total).
+    * Overall Wait ($\bar{W}_q$): $26.27 \pm 15.15$ mins ($95\%\text{ CI}: [11.12, 41.42]$ mins; range $[9.76, 84.87]$ mins; sample size: 31,570 patients/rep; 315,700 total).
+    * Drain Horizon: Mean drain completed at $730.04$ days; maximum drain completed at $730.35$ days (8.4 hours post-horizon).
+    * Total Censored Patients: Exactly 0 across all 10 replications.
   * Removed "conservative upper bound" assertion; clarified that high utilization ($\rho \approx 91.9\%$) creates significant multi-year sample path variance, while the heuristic point estimate comfortably resides within the 95% confidence interval.
 * **Work Balance Language Refinement:**
   * Renamed section to **"Internal Consistency Check for the Heuristic"** in both `02_capacity_and_priority_deep_dive.md` and `verify_deep_dives.py`.
@@ -105,4 +120,4 @@ This document records the exact corrections, recalibrations, and alignment chang
 * **Verification Language & Dynamic Test Counts:**
   * Updated `README.md` and `verify_deep_dives.py` header:
     *"The verification script checks the documented analytical scenarios and benchmark calculations. Empirical distribution-fit statistics require the restricted SPARCS source data and original fitting pipeline."*
-  * Added `check_test_suite_status()` to `verify_deep_dives.py` to dynamically discover and report test suite size (35 tests) instead of relying on hardcoded test counts.
+  * Added `check_test_suite_status()` to `verify_deep_dives.py` to dynamically discover and report test suite size (38 tests) instead of relying on hardcoded test counts.
