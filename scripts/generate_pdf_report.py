@@ -361,6 +361,51 @@ def build_pdf_report():
     story.append(t_row3)
     story.append(Spacer(1, 10))
 
+    # SECTION 5.4: JACKSON QUEUEING NETWORK
+    f7_path = str(PROJECT_ROOT / "reports" / "figures" / "fig7_jackson_network_flow.png")
+    story.append(Paragraph("<b>5.4 Multi-Stage Jackson Queueing Network (Connected Departmental Flow)</b>", h2_style))
+    story.append(Paragraph(
+        "Individual hospital wards do not operate in isolation. Patients admitted to the Emergency Department frequently transition "
+        "to the Intensive Care Unit (ICU), Step-Down intermediate care, or general Medical/Surgical wards before eventual discharge. "
+        "We formalized this multi-unit architecture as an <b>Open Jackson Queueing Network</b> by solving the traffic equations: "
+        "<i>(I - P<sup>T</sup>) &Lambda; = &gamma;</i>. By Jackson's theorem, each department behaves as an independent M/M/c<sub>j</sub> queue with effective arrival rate &Lambda;<sub>j</sub>. "
+        "Applying Little's Law to the network yields total expected patients <i>L<sub>total</sub> = &sum; L<sub>j</sub></i> and total hospital dwell time <i>W<sub>total</sub> = L<sub>total</sub> / &gamma;<sub>total</sub></i>. "
+        "The MedSurg unit is identified as the primary operational bottleneck with 92.2% utilization.",
+        body_style
+    ))
+    img_f7 = [
+        [Image(f7_path, width=6.8*inch, height=2.6*inch)],
+        [Paragraph("<b>Figure 7:</b> Multi-Stage Jackson Queueing Network: (A) External arrival rates (&gamma;<sub>j</sub>) vs. total internal effective traffic (&Lambda;<sub>j</sub>). (B) Department bed utilization showing MedSurg as the primary operational bottleneck (92.2% utilization).", caption_style)]
+    ]
+    t_f7 = Table(img_f7, colWidths=[7.2*inch])
+    t_f7.setStyle(TableStyle([('ALIGN', (0,0), (-1,-1), 'CENTER'), ('VALIGN', (0,0), (-1,-1), 'TOP')]))
+    story.append(t_f7)
+    story.append(Spacer(1, 10))
+
+    # SECTION 5.5: TIME-VARYING PSA & STAFFING MITIGATION
+    f8_path = str(PROJECT_ROOT / "reports" / "figures" / "fig8_time_varying_diurnal_queue.png")
+    f9_path = str(PROJECT_ROOT / "reports" / "figures" / "fig9_optimal_bed_allocation.png")
+    story.append(Paragraph("<b>5.5 Time-Varying Queueing Dynamics (PSA) & Optimal Bed Allocation</b>", h2_style))
+    story.append(Paragraph(
+        "Real patient demand exhibits strong 24-hour diurnal rhythm (&lambda;(t) peaking at 14:30 with 35% amplitude). "
+        "Using <b>Pointwise Stationary Approximation (PSA)</b>, we demonstrate that rigid constant staffing leads to severe afternoon queueing spikes (41.5 min delay). "
+        "By implementing dynamic shift scheduling (shifting 25 beds from quiet night hours 22:00-06:00 to peak daytime hours 10:00-18:00), "
+        "peak delays plummet to 1.1 minutes (a <b>97.3% delay reduction</b> under zero additional bed-hours). "
+        "Furthermore, our multi-department bed allocation optimizer (Fox's greedy algorithm) outperforms naive proportional sizing by <b>85.1%</b> "
+        "by preventing severe ICU under-buffering.",
+        body_style
+    ))
+    img_row4 = [
+        [Image(f8_path, width=3.4*inch, height=2.4*inch), Image(f9_path, width=3.4*inch, height=2.4*inch)],
+        [Paragraph("<b>Figure 8:</b> Diurnal arrival rate &lambda;(t) and PSA queue delay: Dynamic shift staffing eliminates afternoon queue spikes (41.5m &rarr; 1.1m).", caption_style),
+         Paragraph("<b>Figure 9:</b> Optimal Bed Allocation (Fox algorithm) vs. Proportional sizing: 85.1% reduction in weighted blocking by protecting critical ICU capacity.", caption_style)]
+    ]
+    t_row4 = Table(img_row4, colWidths=[3.6*inch, 3.6*inch])
+    t_row4.setStyle(TableStyle([('ALIGN', (0,0), (-1,-1), 'CENTER'), ('VALIGN', (0,0), (-1,-1), 'TOP')]))
+    story.append(t_row4)
+    story.append(Spacer(1, 10))
+
+
     # SECTION 6: SIMULATION VALIDATION & STRESS TEST
     story.append(Paragraph("6. Simulation Validation & Operational Stress Testing", h1_style))
     story.append(Paragraph(

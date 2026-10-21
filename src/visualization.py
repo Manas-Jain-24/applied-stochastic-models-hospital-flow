@@ -2,7 +2,13 @@
 Visualization Module for Applied Stochastic Models Hospital Flow Project.
 Generates publication-quality 300 DPI figures saved to reports/figures/.
 """
+import sys
 from pathlib import Path
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 from typing import Dict, Any, List
 import numpy as np
 import pandas as pd
@@ -215,8 +221,147 @@ def generate_fig6_finite_buffer_tradeoff(c: int, offered_load: float, arrival_ra
     plt.close()
     return str(out_file)
 
+def generate_fig7_jackson_network(out_dir: Path) -> str:
+    """Figure 7: Jackson Queueing Network Department Utilization & Traffic."""
+    from src.jackson_network import analyze_jackson_network
+    
+    depts = ["Emergency", "ICU", "MedSurg", "StepDown"]
+    gamma = [45.0, 5.0, 15.0, 0.0]
+    P = np.array([
+        [0.00, 0.15, 0.40, 0.05],
+        [0.05, 0.00, 0.70, 0.15],
+        [0.00, 0.05, 0.00, 0.05],
+        [0.00, 0.10, 0.80, 0.00]
+    ])
+    capacities = [35, 30, 160, 25]
+    los_means = [0.5, 3.2, 5.2, 2.8]
+    
+    res = analyze_jackson_network(depts, gamma, P, capacities, los_means)
+    
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 5))
+    
+    x = np.arange(len(depts))
+    width = 0.35
+    
+    ext_rates = [st.exogenous_rate for st in res.stations]
+    tot_rates = [st.arrival_rate for st in res.stations]
+    
+    ax1.bar(x - width/2, ext_rates, width, label="Direct External Arrival (gamma_j)", color="#2ca02c")
+    ax1.bar(x + width/2, tot_rates, width, label="Total Effective Traffic (Lambda_j)", color="#1f77b4")
+    ax1.set_xticks(x)
+    ax1.set_xticklabels(depts)
+    ax1.set_ylabel("Patients per Day")
+    ax1.set_title("(A) External vs. Total Traffic Rates (Lambda = gamma + P^T Lambda)")
+    ax1.legend(frameon=True, facecolor="white")
+    
+    rhos = [st.utilization * 100 for st in res.stations]
+    colors = ["#d62728" if st.name == res.bottleneck_station else "#3b528b" for st in res.stations]
+    bars = ax2.bar(depts, rhos, color=colors, width=0.5)
+    ax2.axhline(85.0, color="orange", linestyle="--", linewidth=1.5, label="Target Safety Threshold (85%)")
+    ax2.set_ylabel("Bed Utilization rho (%)")
+    ax2.set_title(f"(B) Department Utilization (Bottleneck: {res.bottleneck_station})")
+    ax2.set_ylim(0, 105)
+    ax2.legend(frameon=True, facecolor="white")
+    
+    for bar in bars:
+        h = bar.get_height()
+        ax2.annotate(f"{h:.1f}%", xy=(bar.get_x() + bar.get_width() / 2, h),
+                     xytext=(0, 3), textcoords="offset points", ha="center", va="bottom", fontweight="bold")
+                     
+    plt.suptitle(f"Figure 7: Multi-Stage Jackson Queueing Network (End-to-End Hospital Dwell: {res.mean_end_to_end_los:.2f} Days)", fontsize=13, y=1.02)
+    out_file = out_dir / "fig7_jackson_network_flow.png"
+    plt.tight_layout()
+    plt.savefig(out_file, dpi=300, bbox_inches="tight")
+    plt.close()
+    return str(out_file)
+
+def generate_fig8_time_varying_psa(out_dir: Path) -> str:
+    """Figure 8: 24-Hour Diurnal Queueing & Pointwise Stationary Staffing."""
+    from src.time_varying import compare_constant_vs_dynamic_staffing
+    
+    c_res, d_res = compare_constant_vs_dynamic_staffing(base_beds=425, surge_delta=25)
+    
+    hours = np.arange(24)
+    arrivals = [st.arrival_rate_per_hour for st in c_res.hourly_states]
+    c_waits = [st.wait_time_hours * 60.0 for st in c_res.hourly_states]
+    d_waits = [st.wait_time_hours * 60.0 for st in d_res.hourly_states]
+    
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 7), sharex=True)
+    
+    ax1.plot(hours, arrivals, "-o", color="#2ca02c", linewidth=2.2, label="Arrival Rate lambda(t)")
+    ax1.axvline(c_res.peak_hour, color="red", linestyle=":", label=f"Peak Hour ({c_res.peak_hour}:00)")
+    ax1.set_ylabel("Arrival Rate (Patients/Hour)")
+    ax1.set_title("(A) Diurnal Non-Homogeneous Poisson Arrival Rate lambda(t)")
+    ax1.grid(True, linestyle="--", alpha=0.5)
+    ax1.legend(loc="upper right", frameon=True, facecolor="white")
+    
+    ax2.plot(hours, c_waits, "-s", color="#d62728", linewidth=2.0, label=f"Constant Staffing (Peak Wait: {c_res.peak_wait_time_hours*60:.1f} min)")
+    ax2.plot(hours, d_waits, "-^", color="#1f77b4", linewidth=2.0, label=f"Dynamic Shift Staffing (Peak Wait: {d_res.peak_wait_time_hours*60:.1f} min)")
+    ax2.set_xlabel("Hour of Day (00:00 to 23:00)")
+    ax2.set_ylabel("Expected Delay W_q (Minutes)")
+    ax2.set_title("(B) Pointwise Stationary Queueing Delay: Constant vs. Dynamic Staffing")
+    ax2.grid(True, linestyle="--", alpha=0.5)
+    ax2.legend(loc="upper right", frameon=True, facecolor="white")
+    ax2.set_xticks(hours)
+    
+    plt.suptitle("Figure 8: Time-Varying Queueing Dynamics & Staffing Mitigation", fontsize=13, y=1.01)
+    out_file = out_dir / "fig8_time_varying_diurnal_queue.png"
+    plt.tight_layout()
+    plt.savefig(out_file, dpi=300, bbox_inches="tight")
+    plt.close()
+    return str(out_file)
+
+def generate_fig9_bed_allocation_frontier(out_dir: Path) -> str:
+    """Figure 9: Optimal Multi-Department Bed Allocation Frontier."""
+    from src.bed_allocation import DepartmentSpec, compute_capacity_expansion_frontier
+    
+    depts = [
+        DepartmentSpec(name="ICU", offered_load=25.0, weight=5.0, min_beds=26),
+        DepartmentSpec(name="Emergency_Ward", offered_load=35.0, weight=2.0, min_beds=36),
+        DepartmentSpec(name="MedSurg", offered_load=180.0, weight=1.0, min_beds=181),
+    ]
+    
+    frontier = compute_capacity_expansion_frontier(depts, min_total_beds=250, max_total_beds=300, step=2)
+    
+    total_beds = [pt["total_beds"] for pt in frontier]
+    opt_blocking = [pt["optimal_weighted_blocking"] * 100 for pt in frontier]
+    prop_blocking = [pt["proportional_weighted_blocking"] * 100 for pt in frontier]
+    
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 5))
+    
+    ax1.plot(total_beds, prop_blocking, "--o", color="#d62728", label="Proportional Sizing", linewidth=2)
+    ax1.plot(total_beds, opt_blocking, "-s", color="#2ca02c", label="Optimal Marginal Sizing (Fox Algorithm)", linewidth=2.5)
+    ax1.set_xlabel("Total Hospital Bed Capacity (C_total)")
+    ax1.set_ylabel("Weighted System Blocking Probability (%)")
+    ax1.set_title("(A) Hospital Capacity Expansion Pareto Frontier")
+    ax1.grid(True, linestyle="--", alpha=0.5)
+    ax1.legend(frameon=True, facecolor="white")
+    
+    # Department breakdown for optimal at 270 beds
+    opt_at_270 = next(pt for pt in frontier if pt["total_beds"] == 270)
+    dept_names = list(opt_at_270["optimal_beds_by_dept"].keys())
+    opt_alloc = [opt_at_270["optimal_beds_by_dept"][k] for k in dept_names]
+    prop_alloc = [opt_at_270["proportional_beds_by_dept"][k] for k in dept_names]
+    
+    x = np.arange(len(dept_names))
+    width = 0.35
+    ax2.bar(x - width/2, prop_alloc, width, label="Proportional", color="#d62728", alpha=0.85)
+    ax2.bar(x + width/2, opt_alloc, width, label="Optimal (Fox)", color="#2ca02c", alpha=0.85)
+    ax2.set_xticks(x)
+    ax2.set_xticklabels(dept_names)
+    ax2.set_ylabel("Allocated Beds")
+    ax2.set_title("(B) Bed Distribution Comparison at Budget C = 270 Beds")
+    ax2.legend(frameon=True, facecolor="white")
+    
+    plt.suptitle("Figure 9: Multi-Department Bed Allocation Optimization (Erlang-B)", fontsize=13, y=1.02)
+    out_file = out_dir / "fig9_optimal_bed_allocation.png"
+    plt.tight_layout()
+    plt.savefig(out_file, dpi=300, bbox_inches="tight")
+    plt.close()
+    return str(out_file)
+
 def generate_all_figures():
-    """Generates all 6 figures and saves them in reports/figures/."""
+    """Generates all 9 publication figures and saves them in reports/figures/."""
     figures_dir = Path("reports/figures")
     figures_dir.mkdir(parents=True, exist_ok=True)
     
@@ -259,8 +404,21 @@ def generate_all_figures():
     # 6. M/M/c/K Buffer Tradeoff
     f6 = generate_fig6_finite_buffer_tradeoff(c=285, offered_load=269.3, arrival_rate=50.0, service_rate=1.0/5.386, out_dir=figures_dir)
     print(f"Saved: {f6}")
+
+    # 7. Jackson Network Flow
+    f7 = generate_fig7_jackson_network(figures_dir)
+    print(f"Saved: {f7}")
+
+    # 8. Time-Varying PSA
+    f8 = generate_fig8_time_varying_psa(figures_dir)
+    print(f"Saved: {f8}")
+
+    # 9. Optimal Bed Allocation
+    f9 = generate_fig9_bed_allocation_frontier(figures_dir)
+    print(f"Saved: {f9}")
     
-    print("All 6 publication figures generated successfully!")
+    print("All 9 publication figures generated successfully!")
 
 if __name__ == "__main__":
     generate_all_figures()
+

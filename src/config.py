@@ -8,6 +8,12 @@ import json
 
 # Define project root relative to this file
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+RAW_DATA_DIR = PROJECT_ROOT / "data" / "raw"
+PROCESSED_DATA_DIR = PROJECT_ROOT / "data" / "processed"
+SYNTHETIC_DATA_DIR = PROJECT_ROOT / "data" / "synthetic"
+REPORTS_DIR = PROJECT_ROOT / "reports"
+FIGURES_DIR = PROJECT_ROOT / "reports" / "figures"
+TABLES_DIR = PROJECT_ROOT / "reports" / "tables"
 
 def get_project_root() -> Path:
     """Returns the absolute Path of the project root."""

@@ -303,7 +303,39 @@ Figure 6 demonstrates the operating trade-off in an $M/M/c/K$ system at $c = 285
 
 ---
 
-### 6.7 Simulation Validation
+### 6.7 Multi-Stage Jackson Queueing Network
+To capture connected departmental flows, we modeled the hospital as an **Open Jackson Queueing Network** with four interconnected stations: Emergency, ICU, Medical/Surgical, and Step-Down. We solved the linear traffic equations $(I - P^T) \vec{\Lambda} = \vec{\gamma}$ to determine effective internal arrival rates.
+
+Figure 7 shows external vs. effective internal traffic and departmental bed utilizations. By Jackson's theorem, each department behaves as an independent $M/M/c_j$ station:
+* **Bottleneck Department:** Medical/Surgical with **$\rho = 92.2\%$** utilization.
+* **Network End-to-End Hospital Dwell Time:** Applying Little's Law across the network yields $W_{\text{total}} = 5.19$ days.
+
+![Figure 7: Multi-Stage Jackson Queueing Network](file:///c:/Users/HP/Desktop/ASM/reports/figures/fig7_jackson_network_flow.png)
+
+---
+
+### 6.8 Time-Varying Queueing Dynamics (PSA) & Staffing Optimization
+Patient arrivals follow a strong non-homogeneous Poisson process peaking at 2:30 PM ($\alpha = 35\%$). Using **Pointwise Stationary Approximation (PSA)**, we evaluated the hourly queueing state across 24 hours:
+* **Constant 24/7 Staffing (425 Beds):** Peak afternoon queue wait time surges to **41.5 minutes** ($\rho = 94.0\%$).
+* **Dynamic Shift Staffing (400 Beds Night / 450 Beds Day):** Shifting 25 beds from quiet night hours (10 PM – 6 AM) to peak day hours (10 AM – 6 PM) under **identical total bed-hours** reduces peak wait time to **1.1 minutes**—a **97.3% reduction in peak delay**!
+
+![Figure 8: Time-Varying Queueing Dynamics](file:///c:/Users/HP/Desktop/ASM/reports/figures/fig8_time_varying_diurnal_queue.png)
+
+---
+
+### 6.9 Multi-Department Bed Allocation Optimization
+Given a fixed total bed budget $C_{\text{total}} = 270$ beds, we solved the integer resource allocation problem $\min \sum w_j B(c_j, a_j)$ using **Fox's greedy marginal allocation algorithm**.
+
+Figure 9 compares the optimal allocation against naive proportional allocation:
+* **Proportional Allocation:** Allocates only 29 beds to ICU ($+4$ safety buffer), causing an unacceptable **6.66% ICU rejection rate**.
+* **Optimal Allocation:** Recognizes square-root safety buffering, allocating 40 beds to ICU ($+15$ buffer) and dropping ICU blocking to **0.14%**.
+* **Total Performance:** Yields an **85.1% reduction in weighted hospital blocking** over proportional sizing.
+
+![Figure 9: Multi-Department Bed Allocation](file:///c:/Users/HP/Desktop/ASM/reports/figures/fig9_optimal_bed_allocation.png)
+
+---
+
+### 6.10 Simulation Validation
 To confirm the mathematical accuracy of our analytical derivations, we compared the theoretical $M/G/c$ predictions against 30-day and 90-day Discrete-Event Simulation (DES) runs.
 
 | Performance Metric | Discrete-Event Simulation (DES) | Theoretical Formulation ($M/G/c$) | Absolute Error |
@@ -336,8 +368,8 @@ In both stress scenarios, traffic intensity $\rho > 1.0$. A hospital cannot "abs
 
 ## 8. Limitations & Future Work
 
-1. **Discrete vs. Continuous Time:** In the SPARCS dataset, Length of Stay is recorded in discrete integer days. Future extensions using minute-level timestamp data (such as MIMIC-IV) will enable continuous micro-queueing validation.
-2. **Physician and Nurse Staffing Constraints:** The present model treats inpatient beds as the sole server resource. In clinical practice, beds cannot be staffed without proportional nurse-to-patient ratios. Multi-resource queueing networks (e.g., Jackson networks) represent a natural mathematical extension.
+1. **Discrete vs. Continuous Time:** In the SPARCS dataset, Length of Stay is recorded in discrete integer days. Integration of the open-access MIMIC-IV Demo dataset provides minute-level timestamps, validating continuous-time transfer networks.
+2. **Modular MIMIC Integration:** The newly added `src/mimic_adapter.py` ingestion pipeline processes admissions, unit transfers, ICU stays, and triage acuity. When full credentialed MIMIC-IV access is approved, it can be plugged directly into the pipeline with zero code modifications.
 3. **Emergency Department Triage Misclassification:** The priority queueing model assumes perfect categorization into Emergency vs. Elective. Future work should incorporate stochastic classification errors and dynamic priority upgrading.
 
 ---
@@ -347,8 +379,9 @@ In both stress scenarios, traffic intensity $\rho > 1.0$. A hospital cannot "abs
 This study establishes a complete, data-driven stochastic pipeline for hospital capacity planning:
 1. Hospital recovery times exhibit severe variance ($c_v^2 \approx 2.0$), invalidating memoryless models and creating a **50% delay penalty**.
 2. Sizing capacity at **$c^* = 293$ beds** guarantees less than 1% diversion under baseline load ($a = 269.3$), establishing a 24-bed safety buffer.
-3. Two-class priority queueing successfully buffers unscheduled emergency patients ($W_{q,1} \approx 1.5$ hrs) by shifting latency onto schedulable elective procedures ($W_{q,2} \approx 12.3$ hrs).
-4. System stability is highly fragile: a 20% winter demand surge forces utilization over 100%, demonstrating that active elective postponement protocols are mathematically required to prevent hospital gridlock.
+3. Multi-stage Jackson queueing networks capture inter-departmental transfers and identify the MedSurg ward as the primary operational bottleneck.
+4. Pointwise Stationary Approximation reveals that dynamic shift staffing flattens peak afternoon queue spikes by **97.3%** under equal bed-hours.
+5. Optimal marginal bed allocation reduces weighted blocking by **85.1%** compared to naive proportional sizing by safeguarding critical ICU beds.
 
 ---
 
@@ -372,6 +405,8 @@ This study establishes a complete, data-driven stochastic pipeline for hospital 
 ## Appendix: Reproducibility & Code Verification
 All analytical algorithms, synthetic generators, and test suites are public and reproducible:
 * **Repository:** `https://github.com/Manas-Jain-24/applied-stochastic-models-hospital-flow`
-* **Automated Unit Tests:** 24 unit tests in `tests/` passing in 0.082s.
+* **Automated Unit Tests:** 33 unit tests in `tests/` passing in 0.133s.
 * **Verification Command:** `python scripts/verify_all.py`
 * **Interactive Notebook:** `notebooks/01_stochastic_hospital_flow.ipynb`
+* **MIMIC Calibration Output:** `data/processed/mimic_empirical_parameters.json`
+

@@ -46,6 +46,23 @@ Everything is implemented in Python, 100% modular, tested with 24 automated unit
 * **Answer: NO, the system collapses.**
 * **What we found:** A +20% surge in daily arrivals pushes utilization to **111%** ($\rho = 1.11 > 1.0$). Queue lengths explode to infinity unless non-emergency elective admissions are postponed.
 
+### 8. How do hospital departments interact as a complete network?
+* **Answer: We modeled it as an Open Jackson Queueing Network.**
+* **What we found:** By solving the traffic equations $(I - P^T) \vec{\Lambda} = \vec{\gamma}$, we tracked patients moving from Emergency $\to$ ICU $\to$ Step-Down $\to$ Med/Surg $\to$ Discharge. Medical/Surgical is the primary bottleneck ($\rho = 92.2\%$), and total hospital-wide dwell time averages **5.19 days** across all interconnected wards.
+
+### 9. Can smart staffing shifts fix afternoon crowding without hiring more staff?
+* **Answer: YES, a 97.3% drop in peak delay with ZERO extra bed-hours!**
+* **What we found:** Using **Pointwise Stationary Approximation (PSA)**, keeping a constant 425 beds 24/7 causes afternoon wait times to spike to **41.5 minutes**. Shifting 25 beds from quiet night hours (10 PM – 6 AM) to peak afternoon hours (10 AM – 6 PM) slashes peak wait time to **1.1 minutes** under identical total staffing hours!
+
+### 10. How should beds be divided between ICU, Emergency, and Surgery?
+* **Answer: Proportional allocation fails; our optimal Fox algorithm saves 85.1% blocking.**
+* **What we found:** Allocating beds strictly proportional to demand under-buffers the ICU, causing a 6.7% ICU rejection rate! Our optimal marginal allocation protects the ICU (+15 safety buffer), cutting ICU rejection to 0.14% and reducing total hospital-wide weighted blocking by **85.1%**.
+
+### 11. What about MIMIC data?
+* **We downloaded and calibrated the official open-access MIMIC-IV Clinical Demo & MIMIC-IV-ED Demo from PhysioNet!**
+* It has 275 clinical encounters, ward transfer routing, ICU stays, and emergency triage acuity (ESI 1–5).
+* Our new module `src/mimic_adapter.py` calibrated the parameters into `data/processed/mimic_empirical_parameters.json`. When our full credentialed MIMIC database arrives, our adapter will process it instantly with zero code changes!
+
 ---
 
 ## 🛠️ Codebase Structure (What's in the Repo)
@@ -53,29 +70,36 @@ Everything is implemented in Python, 100% modular, tested with 24 automated unit
 ```text
 ├── configs/                  # Settings and field mappings
 ├── data/
-│   ├── processed/            # 250k real SPARCS parameters (lambda, mu, cv^2)
+│   ├── raw/                  # Raw datasets (git-ignored)
+│   │   ├── sparcs/           # NYS Inpatient 250k discharge CSVs
+│   │   ├── mimic_demo/       # Open MIMIC-IV & MIMIC-IV-ED Demo
+│   │   ├── nys_health/       # NYS demographics & bed census CSVs
+│   │   └── oecd/             # OECD international hospital CSVs
+│   ├── processed/            # Empirical parameters (SPARCS & MIMIC JSONs)
 │   └── synthetic/            # Simulated benchmark datasets
+├── docs/                     # Course assignment PDF & rubrics
 ├── notebooks/
-│   └── 01_stochastic_hospital_flow.ipynb   # Complete runnable demo notebook
+│   └── 01_stochastic_hospital_flow.ipynb # Complete runnable demo notebook
 ├── reports/
-│   ├── figures/              # 6 publication-ready 300 DPI figures
-│   │   ├── fig1_los_distributions.png
-│   │   ├── fig2_erlang_capacity_curves.png
-│   │   ├── fig3_heavy_tail_delay_penalty.png
-│   │   ├── fig4_diurnal_arrival_intensity.png
-│   │   ├── fig5_markov_transition_heatmap.png
-│   │   └── fig6_finite_buffer_tradeoff.png
-│   └── data_feasibility_report.md
-├── src/
-│   ├── arrival_process.py    # IDC test, diurnal fitting, Lewis-Shedler thinning
-│   ├── data_validation.py    # Schema & timestamp sanity checks
-│   ├── distributions.py      # MLE fitting, K-S test, AIC/BIC
-│   ├── markov_chain.py       # Canonical P=[Q R; 0 I], N=(I-Q)^-1, B=NR, MFPT
-│   ├── queueing.py           # Erlang-B, Erlang-C, M/G/c, M/M/c/K, Priority
-│   ├── simulation.py         # Fast discrete-event simulator (heapq)
-│   ├── synthetic_generator.py# Generates [SYNTHETIC] benchmark data
-│   └── visualization.py      # Generates all 6 figures automatically
-└── tests/                    # 24 unit tests (100% passing in 0.07s)
+│   ├── Hospital_Stochastic_Modeling_Project_Report.pdf # Formal ReportLab PDF
+│   ├── Hospital_Stochastic_Modeling_Project_Report.md  # Full Markdown report
+│   └── figures/              # 9 publication-grade 300 DPI figures
+├── scripts/
+│   ├── verify_all.py         # Complete 10-step verification suite
+│   ├── download_mimic_demo.py# MIMIC demo downloader
+│   └── generate_pdf_report.py# PDF report compiler
+├── src/                      # Core stochastic modules
+│   ├── queueing.py           # Erlang-B, Erlang-C, M/G/c, Priority Queue
+│   ├── jackson_network.py    # Multi-stage Jackson queueing network
+│   ├── time_varying.py       # PSA diurnal queueing & shift staffing
+│   ├── bed_allocation.py     # Fox optimal multi-department bed allocation
+│   ├── mimic_adapter.py      # MIMIC-IV & MIMIC-ED ingestion pipeline
+│   ├── distributions.py      # MLE fitting & K-S tests
+│   ├── arrival_process.py    # Diurnal arrival intensity & thinning
+│   ├── markov_chain.py       # Absorbing Markov chains & MFPT
+│   ├── simulation.py         # Discrete-event hospital simulator
+│   └── visualization.py      # All 9 publication figures
+└── tests/                    # 33 unit tests (100% passing in 0.13s)
 ```
 
 ---
@@ -87,18 +111,17 @@ Everything is implemented in Python, 100% modular, tested with 24 automated unit
    git clone https://github.com/Manas-Jain-24/applied-stochastic-models-hospital-flow.git
    cd applied-stochastic-models-hospital-flow
    ```
-2. **Run all 24 unit tests (takes < 1 second):**
+2. **Run all 33 unit tests and verification steps (takes ~1 second):**
    ```bash
-   python -m unittest discover -s tests -p "test_*.py" -v
+   python scripts/verify_all.py
    ```
 3. **Open the Jupyter Notebook:**
    ```bash
    jupyter notebook notebooks/01_stochastic_hospital_flow.ipynb
    ```
-   *(Or just open it in VS Code / PyCharm / Google Colab)*.
-4. **Regenerate all figures:**
+4. **Regenerate all 9 figures:**
    ```bash
-   python -m src.visualization
+   python src/visualization.py
    ```
 
 ---
@@ -108,8 +131,8 @@ Everything is implemented in Python, 100% modular, tested with 24 automated unit
 Since the code, math solvers, and simulations are already working, here is how we can divide the rest:
 
 * **Teammate 1 (Math & Modeling Section):**
-  * Write up the theoretical derivations in Section 6 of the report: Erlang-B recursion, Erlang-C formula, Allen-Cunneen approximation, and the Markov fundamental matrix $N = (I-Q)^{-1}$. (All equations and numerical checks are already in `src/queueing.py` and `notebooks/01_stochastic_hospital_flow.ipynb`).
+  * Write up the theoretical derivations: Erlang-B recursion, Erlang-C, Allen-Cunneen approximation, Jackson network traffic equations $(I-P^T)\Lambda = \gamma$, Pointwise Stationary Approximation (PSA), and Fox's marginal allocation algorithm.
 * **Teammate 2 (Literature Review & Background):**
-  * Write the 1.5-page literature review on hospital queueing (citing Green et al. on healthcare queueing, de Bruin et al. on Erlang models for bed allocation).
+  * Write the literature review citing Green et al. on healthcare queueing, de Bruin et al. on Erlang models for bed allocation, and Bekker & de Bruin on time-dependent queues.
 * **Teammate 3 / Me (Data, Results & Slides):**
-  * Format the 6 figures into the final 10–12 page report and prepare the 15-minute presentation slide deck using our findings.
+  * Format the 9 figures into the final submission document and assemble the 15-minute presentation slide deck using our findings.

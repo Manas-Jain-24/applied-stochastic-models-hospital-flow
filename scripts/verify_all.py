@@ -19,7 +19,7 @@ def main():
     print("=" * 60)
 
     # 1. RUN ALL UNIT TESTS
-    print("\n[Step 1/6] Running full test suite...")
+    print("\n[Step 1/10] Running full test suite...")
     loader = unittest.TestLoader()
     suite = loader.discover("tests", pattern="test_*.py")
     runner = unittest.TextTestRunner(verbosity=1)
@@ -30,7 +30,7 @@ def main():
     print(f"PASS: All {test_result.testsRun} unit tests passed without errors!")
 
     # 2. VALIDATE SYNTHETIC DATA
-    print("\n[Step 2/6] Validating synthetic benchmark dataset...")
+    print("\n[Step 2/10] Validating synthetic benchmark dataset...")
     from src.data_validation import run_full_validation
     df_synth = pd.read_csv(PROJECT_ROOT / "data" / "synthetic" / "synthetic_hospital_encounters.csv")
     val_report = run_full_validation(
@@ -46,7 +46,7 @@ def main():
     print(f"PASS: 5,000 synthetic encounters validated (0 violations, 0 duplicates).")
 
     # 3. VERIFY QUEUEING MODELS
-    print("\n[Step 3/6] Verifying analytical queueing calculations...")
+    print("\n[Step 3/10] Verifying analytical queueing calculations...")
     from src.queueing import (
         erlang_b, 
         erlang_c, 
@@ -77,7 +77,7 @@ def main():
     print(f"PASS: Erlang-B, Erlang-C, M/G/c, M/M/c/K, and Priority Queue equations match theory.")
 
     # 4. VERIFY MARKOV CHAIN
-    print("\n[Step 4/6] Verifying Absorbing Markov Chain & MFPT...")
+    print("\n[Step 4/10] Verifying Absorbing Markov Chain & MFPT...")
     from src.markov_chain import (
         analyze_absorbing_markov_chain, 
         compute_n_step_transition_matrix, 
@@ -104,7 +104,8 @@ def main():
     print("PASS: Fundamental matrix N, absorption probabilities B, and P^3 verified.")
 
     # 5. VERIFY SIMULATION
-    print("\n[Step 5/6] Verifying Discrete-Event Simulation engine...")
+    print("\n[Step 5/10] Verifying Discrete-Event Simulation engine...")
+
     from src.simulation import HospitalSimulation
     sim = HospitalSimulation(
         n_beds=290,
@@ -120,14 +121,61 @@ def main():
     assert 0.70 < sim_res["empirical_bed_utilization"] < 1.0
     print(f"PASS: Simulated {sim_res['total_patients_simulated']} patients over 30 days (Utilization: {sim_res['empirical_bed_utilization']*100:.1f}%).")
 
-    # 6. VERIFY GENERATED FIGURES
-    print("\n[Step 6/6] Verifying publication figures...")
+    # 6. VERIFY MIMIC ADAPTER
+    print("\n[Step 6/10] Verifying MIMIC Demo calibration...")
+    from src.mimic_adapter import calibrate_mimic_parameters
+    mimic_dir = PROJECT_ROOT / "data" / "raw" / "mimic_demo"
+    if mimic_dir.exists():
+        mimic_params = calibrate_mimic_parameters(mimic_dir, PROJECT_ROOT / "data" / "processed")
+        assert "admissions" in mimic_params
+        assert "ward_transfer_matrix" in mimic_params
+        print(f"PASS: MIMIC Demo calibrated ({mimic_params['admissions']['total_encounters']} encounters, {len(mimic_params['ward_transfer_matrix']['departments'])} departments).")
+    else:
+        print("SKIP: MIMIC demo directory not present.")
+
+    # 7. VERIFY JACKSON NETWORK
+    print("\n[Step 7/10] Verifying Multi-Stage Jackson Queueing Network...")
+    from src.jackson_network import solve_traffic_equations, analyze_jackson_network
+    jn_depts = ["ED", "ICU", "MedSurg"]
+    jn_gamma = [30.0, 5.0, 10.0]
+    jn_P = np.array([
+        [0.0, 0.2, 0.5],
+        [0.1, 0.0, 0.6],
+        [0.0, 0.1, 0.0]
+    ])
+    jn_res = analyze_jackson_network(jn_depts, jn_gamma, jn_P, [25, 55, 200], [0.5, 3.0, 5.0])
+    assert jn_res.all_stations_stable
+    assert jn_res.mean_end_to_end_los > 0
+    print(f"PASS: Jackson Network solved (Bottleneck: {jn_res.bottleneck_station}, End-to-End Stay: {jn_res.mean_end_to_end_los:.2f} days).")
+
+    # 8. VERIFY TIME-VARYING PSA
+    print("\n[Step 8/10] Verifying Time-Varying Queueing & PSA...")
+    from src.time_varying import compare_constant_vs_dynamic_staffing
+    c_res, d_res = compare_constant_vs_dynamic_staffing(base_beds=425, surge_delta=25)
+    assert d_res.peak_wait_time_hours < c_res.peak_wait_time_hours
+    print(f"PASS: PSA verified (Constant peak wait: {c_res.peak_wait_time_hours*60:.1f}m -> Dynamic: {d_res.peak_wait_time_hours*60:.1f}m).")
+
+    # 9. VERIFY BED ALLOCATION OPTIMIZER
+    print("\n[Step 9/10] Verifying Optimal Multi-Department Bed Allocation...")
+    from src.bed_allocation import DepartmentSpec, marginal_bed_allocation, proportional_bed_allocation
+    ba_depts = [
+        DepartmentSpec(name="ICU", offered_load=20.0, weight=4.0, min_beds=21),
+        DepartmentSpec(name="Emergency", offered_load=30.0, weight=2.0, min_beds=31),
+        DepartmentSpec(name="MedSurg", offered_load=150.0, weight=1.0, min_beds=151),
+    ]
+    opt_alloc = marginal_bed_allocation(ba_depts, 230)
+    prop_alloc = proportional_bed_allocation(ba_depts, 230)
+    assert opt_alloc.total_weighted_blocking < prop_alloc.total_weighted_blocking
+    print(f"PASS: Bed allocation verified (Optimal weighted blocking: {opt_alloc.total_weighted_blocking:.5f} vs Proportional: {prop_alloc.total_weighted_blocking:.5f}).")
+
+    # 10. VERIFY ALL 9 PUBLICATION FIGURES
+    print("\n[Step 10/10] Verifying all 9 publication figures...")
     figures_dir = PROJECT_ROOT / "reports" / "figures"
     fig_files = list(figures_dir.glob("*.png"))
-    assert len(fig_files) == 6, f"Expected 6 figures, found {len(fig_files)}"
+    assert len(fig_files) >= 9, f"Expected 9 figures, found {len(fig_files)}"
     for f in sorted(fig_files):
         print(f"  * Found: {f.name} ({f.stat().st_size / 1024:.1f} KB)")
-    print("PASS: All 6 high-DPI figures present and validated.")
+    print(f"PASS: All {len(fig_files)} high-DPI figures present and validated.")
 
     print("\n" + "=" * 60)
     print(">>> VERIFICATION COMPLETE: ALL SYSTEMS FULLY OPERATIONAL <<<")
@@ -135,3 +183,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

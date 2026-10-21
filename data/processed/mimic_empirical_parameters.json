@@ -1,0 +1,110 @@
+{
+  "dataset": "MIMIC-IV",
+  "admissions": {
+    "total_encounters": 275,
+    "mean_los_days": 6.876,
+    "variance_los": 45.344,
+    "cv2_los": 0.959,
+    "stream_proportions": {
+      "EMERGENCY": 0.6364,
+      "OTHER": 0.3164,
+      "ELECTIVE": 0.0473
+    },
+    "in_hospital_mortality_rate": 0.0545
+  },
+  "ward_transfer_matrix": {
+    "departments": [
+      "Emergency",
+      "ICU",
+      "MedSurg",
+      "Recovery",
+      "StepDown"
+    ],
+    "routing_probabilities": {
+      "Emergency": {
+        "Emergency": 0.4606,
+        "ICU": 0.0965,
+        "MedSurg": 0.0945,
+        "Recovery": 0.0276,
+        "StepDown": 0.0,
+        "Discharge": 0.3209
+      },
+      "ICU": {
+        "Emergency": 0.3365,
+        "ICU": 0.1442,
+        "MedSurg": 0.4135,
+        "Recovery": 0.0288,
+        "StepDown": 0.0192,
+        "Discharge": 0.0577
+      },
+      "MedSurg": {
+        "Emergency": 0.0769,
+        "ICU": 0.1086,
+        "MedSurg": 0.3032,
+        "Recovery": 0.0362,
+        "StepDown": 0.0,
+        "Discharge": 0.4751
+      },
+      "Recovery": {
+        "Emergency": 0.12,
+        "ICU": 0.44,
+        "MedSurg": 0.36,
+        "Recovery": 0.0,
+        "StepDown": 0.04,
+        "Discharge": 0.04
+      },
+      "StepDown": {
+        "Emergency": 0.0,
+        "ICU": 0.3333,
+        "MedSurg": 0.6667,
+        "Recovery": 0.0,
+        "StepDown": 0.0,
+        "Discharge": 0.0
+      }
+    },
+    "ward_los": {
+      "Emergency": {
+        "mean_days": 1.964,
+        "variance_days": 8.922,
+        "cv2": 2.313,
+        "count": 508
+      },
+      "ICU": {
+        "mean_days": 2.583,
+        "variance_days": 9.044,
+        "cv2": 1.355,
+        "count": 104
+      },
+      "MedSurg": {
+        "mean_days": 2.982,
+        "variance_days": 15.953,
+        "cv2": 1.794,
+        "count": 221
+      },
+      "Recovery": {
+        "mean_days": 0.248,
+        "variance_days": 0.122,
+        "cv2": 1.985,
+        "count": 25
+      },
+      "StepDown": {
+        "mean_days": 2.681,
+        "variance_days": 1.603,
+        "cv2": 0.223,
+        "count": 3
+      }
+    }
+  },
+  "icu_specific": {
+    "total_icu_stays": 140,
+    "mean_los_days": 3.679,
+    "variance_los": 15.182,
+    "cv2_los": 1.121
+  },
+  "ed_triage_acuity": {
+    "ESI_1": 0.087,
+    "ESI_2": 0.4686,
+    "ESI_3": 0.4348,
+    "ESI_4": 0.0097
+  }
+}
