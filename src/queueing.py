@@ -8,6 +8,7 @@ Implements:
 """
 import math
 from typing import Dict, Any, Optional
+import numpy as np
 
 def erlang_b(c: int, offered_load: float) -> float:
     """
@@ -181,3 +182,75 @@ def priority_queue_two_class(
         "w_q_class2_elective": round(w_q2, 4),
         "total_mean_wait": round((lambda_1 * w_q1 + lambda_2 * w_q2) / lambda_total, 4)
     }
+
+def mmck_finite_buffer_metrics(
+    c: int,
+    k_capacity: int,
+    arrival_rate: float,
+    service_rate: float
+) -> Dict[str, Any]:
+    """
+    Computes steady-state metrics for M/M/c/K queue (c servers with finite system capacity K >= c).
+    Models hospital inpatient ward with maximum finite ED boarding buffer before diversion.
+    When n = K, arriving patients are diverted / blocked with probability P_loss = p_K.
+    """
+    if k_capacity < c:
+        raise ValueError("System capacity K must be >= server count c.")
+    if arrival_rate <= 0 or service_rate <= 0 or c <= 0:
+        raise ValueError("Parameters must be positive.")
+        
+    a = arrival_rate / service_rate
+    rho = a / c
+    
+    # Compute log-unnormalized probabilities log_u[n] = ln(p_n / p_0) to prevent overflow
+    log_u = np.zeros(k_capacity + 1, dtype=float)
+    
+    # 0 <= n <= c: log_u[n] = n * ln(a) - ln(n!)
+    log_fact = 0.0
+    ln_a = np.log(a)
+    for n in range(1, c + 1):
+        log_fact += np.log(n)
+        log_u[n] = n * ln_a - log_fact
+        
+    # c < n <= K: log_u[n] = log_u[c] + (n - c) * ln(rho)
+    log_rho = np.log(rho) if rho > 0 else -100.0
+    for n in range(c + 1, k_capacity + 1):
+        log_u[n] = log_u[c] + (n - c) * log_rho
+        
+    # Log-sum-exp normalization
+    max_log = np.max(log_u)
+    unnorm_p = np.exp(log_u - max_log)
+    p_n = unnorm_p / np.sum(unnorm_p)
+
+    
+    # Loss / Diversion probability p_K
+    p_loss = float(p_n[k_capacity])
+    
+    # Effective arrival rate admitted
+    lambda_eff = arrival_rate * (1.0 - p_loss)
+    
+    # Expected queue length L_q = sum_{n=c}^K (n - c) * p_n
+    q_indices = np.arange(c, k_capacity + 1)
+    l_q = float(np.sum((q_indices - c) * p_n[c:]))
+    
+    # Expected busy servers L_s = sum_{n=0}^c n * p_n + sum_{n=c+1}^K c * p_n
+    l_servers = float(np.sum(np.arange(c) * p_n[:c]) + c * np.sum(p_n[c:]))
+    
+    # Expected wait in queue via Little's Law: W_q = L_q / lambda_eff
+    w_q = (l_q / lambda_eff) if lambda_eff > 0 else 0.0
+    w_total = w_q + (1.0 / service_rate)
+    
+    return {
+        "c_servers": c,
+        "k_capacity": k_capacity,
+        "max_queue_buffer": k_capacity - c,
+        "offered_load": round(a, 2),
+        "traffic_intensity_rho": round(rho, 4),
+        "prob_loss_diversion": round(p_loss, 5),
+        "effective_arrival_rate": round(lambda_eff, 3),
+        "l_q": round(l_q, 3),
+        "l_servers": round(l_servers, 3),
+        "w_q_days": round(w_q, 4),
+        "w_total_days": round(w_total, 4)
+    }
+

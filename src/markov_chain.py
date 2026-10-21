@@ -84,3 +84,59 @@ def analyze_absorbing_markov_chain(
         "absorption_probabilities_B": df_B,
         "expected_steps_to_absorption": df_expected_steps
     }
+
+def compute_n_step_transition_matrix(P: np.ndarray, n_steps: int, state_names: List[str]) -> pd.DataFrame:
+    """
+    Computes the n-step transition probability matrix P^n.
+    """
+    if n_steps < 1:
+        raise ValueError("n_steps must be >= 1.")
+    P_n = np.linalg.matrix_power(P, n_steps)
+    return pd.DataFrame(np.round(P_n, 4), index=state_names, columns=state_names)
+
+def compute_stationary_distribution(P: np.ndarray, state_names: List[str]) -> pd.Series:
+    """
+    Solves for stationary distribution pi = pi * P, sum(pi) = 1 for an irreducible, ergodic chain.
+    Uses eigenvalue decomposition or system of linear equations (P^T - I) * pi = 0 with sum(pi) = 1.
+    """
+    n = P.shape[0]
+    A = P.T - np.eye(n)
+    A[-1, :] = 1.0  # Replace last equation with sum(pi) = 1
+    b = np.zeros(n)
+    b[-1] = 1.0
+    
+    try:
+        pi = np.linalg.solve(A, b)
+        pi = np.maximum(0.0, pi)  # Ensure non-negative
+        pi = pi / pi.sum()
+        return pd.Series(np.round(pi, 4), index=state_names, name="Stationary_Probability")
+    except np.linalg.LinAlgError:
+        raise ValueError("Could not solve for unique stationary distribution (matrix may be reducible or periodic).")
+
+def compute_mean_first_passage_times(P: np.ndarray, state_names: List[str]) -> pd.DataFrame:
+    """
+    Computes the Mean First Passage Time (MFPT) matrix M for an ergodic Markov chain.
+    M_ij = Expected number of steps to reach state j for the first time starting from state i.
+    Uses Kemeny and Snell formulation: M = (I - Z + E * Z_diag) * D
+    where Z is the fundamental matrix of the regular chain, and D = diag(1 / pi).
+    """
+    n = P.shape[0]
+    pi_series = compute_stationary_distribution(P, state_names)
+    pi = pi_series.values
+    
+    # Outer product matrix W = 1 * pi^T
+    W = np.outer(np.ones(n), pi)
+    # Fundamental matrix Z = (I - P + W)^(-1)
+    Z = np.linalg.inv(np.eye(n) - P + W)
+    
+    D = np.diag(1.0 / pi)
+    Z_diag = np.diag(np.diag(Z))
+    E = np.ones((n, n))
+    
+    M = (np.eye(n) - Z + E @ Z_diag) @ D
+    # Diagonal represents mean recurrence times (1 / pi_i)
+    for i in range(n):
+        M[i, i] = 1.0 / pi[i]
+        
+    return pd.DataFrame(np.round(M, 2), index=state_names, columns=state_names)
+

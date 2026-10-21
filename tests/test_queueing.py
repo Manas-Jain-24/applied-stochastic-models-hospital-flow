@@ -7,8 +7,10 @@ from src.queueing import (
     min_capacity_erlang_b,
     erlang_c,
     mmc_performance_metrics,
-    mgc_allen_cunneen
+    mgc_allen_cunneen,
+    mmck_finite_buffer_metrics
 )
+
 
 class TestQueueingModels(unittest.TestCase):
     def test_erlang_b_boundary_conditions(self):
@@ -45,5 +47,22 @@ class TestQueueingModels(unittest.TestCase):
         # Correction factor for cv_arrival^2=1 and cv_service^2=2 is (1 + 2)/2 = 1.5
         self.assertAlmostEqual(res["correction_factor"], 1.5, places=4)
 
+    def test_mmck_finite_buffer(self):
+        # c=5, K=8, arrival=4, service=1
+        res = mmck_finite_buffer_metrics(c=5, k_capacity=8, arrival_rate=4.0, service_rate=1.0)
+        self.assertGreaterEqual(res["prob_loss_diversion"], 0.0)
+        self.assertLessEqual(res["prob_loss_diversion"], 1.0)
+        self.assertLessEqual(res["effective_arrival_rate"], 4.0)
+        # Little's Law check: L_q == lambda_eff * W_q
+        self.assertAlmostEqual(res["l_q"], res["effective_arrival_rate"] * res["w_q_days"], places=3)
+
+    def test_priority_queue_two_class(self):
+        from src.queueing import priority_queue_two_class
+        prio = priority_queue_two_class(c=10, lambda_1=4.0, lambda_2=4.0, mu=1.0)
+        self.assertTrue(prio["is_stable"])
+        # Class 1 (Emergency) delay must be strictly shorter than Class 2 (Elective) delay
+        self.assertLess(prio["w_q_class1_emergency"], prio["w_q_class2_elective"])
+
 if __name__ == "__main__":
     unittest.main()
+
