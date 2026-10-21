@@ -30,20 +30,54 @@ This project applies stochastic modeling, queueing theory, and discrete-event si
 ### Project Structure
 ```text
 ASM/
-├── .gitignore               # Excludes large CSV files, virtualenvs, and temp files
+├── .gitignore               # Excludes raw data (>2.5 GB), virtualenvs, cache files
 ├── README.md                # Project documentation and guide
 ├── requirements.txt         # Core scientific Python packages
-├── data/
-│   ├── raw/                 # Local directory for raw SPARCS CSV datasets (git-ignored)
-│   └── processed/           # Processed summary tables & calibrated parameters
-├── notebooks/               # Jupyter Notebooks for analysis, figures, and models
-├── src/                     # Reusable Python modules
+├── configs/                 # Pipeline & schema configuration
+│   ├── config.yaml          # Global pipeline & simulation settings
+│   └── schema_mapping.yaml  # SPARCS dataset schema definitions
+├── data/                    # Multi-tiered data directory
+│   ├── raw/                 # Local raw data (git-ignored, >2.5 GB)
+│   │   ├── sparcs/          # NYS SPARCS inpatient discharge CSVs
+│   │   ├── nys_health/      # NYS Health demographics & bed census CSVs
+│   │   └── oecd/            # OECD international hospital indicators CSVs
+│   ├── interim/             # Staged intermediate datasets
+│   ├── processed/           # Empirical parameters JSON & summary tables
+│   └── synthetic/           # Benchmark synthetic patient cohorts
+├── docs/                    # Course and project documentation
+│   ├── ASM Project 2026M.pdf # Official course assignment & rubrics
+│   └── project_guidelines.txt# Problem statement & milestone guidelines
+├── notebooks/               # Interactive Jupyter analysis notebooks
+│   └── 01_stochastic_hospital_flow.ipynb # Runnable end-to-end notebook
+├── reports/                 # Deliverables, reports, and publication assets
+│   ├── Hospital_Stochastic_Modeling_Project_Report.pdf # Formal 5-page PDF report
+│   ├── Hospital_Stochastic_Modeling_Project_Report.md  # Markdown report source
+│   ├── project_overview_for_team.md                   # Summary briefing for teammates
+│   ├── data_feasibility_report.md                     # Data pipeline evaluation
+│   ├── figures/             # 6 publication-grade 300 DPI figures
+│   └── tables/              # Exported summary tables
+├── scripts/                 # Standalone automation & verification scripts
+│   ├── verify_all.py        # Automated test suite and artifact verification
+│   ├── generate_pdf_report.py # PDF report compilation script
+│   └── build_notebook.py    # Notebook generation script
+├── src/                     # Core stochastic modeling Python package
 │   ├── __init__.py
-│   ├── distribution_fit.py  # Fitting and testing LOS distributions
-│   ├── queueing_models.py   # Analytical Erlang-B, Erlang-C, M/G/c solvers
-│   ├── simulation.py        # Discrete-event hospital simulator
-│   └── markov_chain.py      # Absorbing Markov chain for patient disposition
-└── reports/                 # Project reports, figures, and presentation materials
+│   ├── queueing.py          # Erlang-B, Erlang-C, Allen-Cunneen, M/M/c/K, Priority
+│   ├── distributions.py     # MLE parametric fitting, K-S tests, AIC/BIC
+│   ├── arrival_process.py   # NHPP diurnal intensity, IDC dispersion, thinning
+│   ├── markov_chain.py      # Absorbing Markov chains, fundamental matrix, MFPT
+│   ├── simulation.py        # Event-calendar Discrete-Event Simulator (DES)
+│   ├── visualization.py     # 6 publication figures generator
+│   ├── data_validation.py   # Schema validation & integrity checks
+│   ├── synthetic_generator.py # Reproducible benchmark patient generator
+│   └── config.py            # Global project paths and constants
+└── tests/                   # Complete unit test suite (24 unit tests)
+    ├── test_queueing.py
+    ├── test_distributions.py
+    ├── test_arrival_process.py
+    ├── test_markov_chain.py
+    ├── test_simulation.py
+    └── test_validation.py
 ```
 
 ---
@@ -62,20 +96,28 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-#### 2. Data Note
-The raw SPARCS and OECD datasets are large (>2.5 GB total) and are excluded from Git version control via `.gitignore`. Store the CSV files in your workspace root or the `data/raw/` directory.
+#### 2. Verify Everything
+Run the unified verification suite to validate all models, unit tests, and figures:
+```bash
+python scripts/verify_all.py
+```
+
+#### 3. View Reports & Interactive Notebook
+- **Formal PDF Report:** [reports/Hospital_Stochastic_Modeling_Project_Report.pdf](file:///reports/Hospital_Stochastic_Modeling_Project_Report.pdf)
+- **Interactive Notebook:** Launch `jupyter notebook notebooks/01_stochastic_hospital_flow.ipynb`
 
 ---
 
 ### Collaboration Guide
-1. Create a remote repository on [GitHub](https://github.com).
-2. Link this local repository and push:
+1. Push latest updates to the remote repository:
    ```bash
-   git remote add origin <REMOTE_REPO_URL>
-   git branch -M main
-   git push -u origin main
+   git push origin main
    ```
-3. Your teammate can clone the repository:
+2. Your teammate can clone and reproduce:
    ```bash
-   git clone <REMOTE_REPO_URL>
+   git clone https://github.com/Manas-Jain-24/applied-stochastic-models-hospital-flow.git
+   cd applied-stochastic-models-hospital-flow
+   pip install -r requirements.txt
+   python scripts/verify_all.py
    ```
+
