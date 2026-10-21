@@ -11,11 +11,11 @@ We are modeling **hospital bed shortages, emergency crowding, and patient wait t
 
 Instead of waiting weeks for the restricted MIMIC dataset to get approved, we calibrated our models using **250,000 real hospital records** from the open New York State SPARCS inpatient database (which is already sitting on our machine) + generated clean, realistic synthetic benchmarks to test our code safely.
 
-Everything is implemented in Python, 100% modular, tested with 24 automated unit tests, and fully pushed to our GitHub repo.
+Everything is implemented in Python, 100% modular, tested with 33 automated unit tests, and fully pushed to our GitHub repo.
 
 ---
 
-## 🔍 The 7 Big Questions We Formulated & Solved
+## 🔍 The 11 Big Questions We Formulated & Solved
 
 ### 1. Does the classic textbook exponential assumption hold for hospital stays?
 * **Answer: NO.**
