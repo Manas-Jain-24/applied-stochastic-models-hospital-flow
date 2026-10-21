@@ -1,0 +1,3 @@
+APR Medical Surgical Description,n_encounters,mean_los_days,std_los_days,var_los,cv2
+Medical,187312,5.224,7.118,50.669,1.857
+Surgical,62684,5.871,8.87,78.682,2.283

@@ -57,6 +57,11 @@ Desktop.ini
 *.tar.gz
 *.gz
 
-# Allow small processed/sample datasets if explicitly placed in data/processed/
+# Allow small processed/sample/synthetic datasets and report tables (< 5MB)
+!data/processed/*.csv
 !data/processed/.gitkeep
-!data/sample/.gitkeep
+!data/synthetic/*.csv
+!data/synthetic/.gitkeep
+!data/interim/.gitkeep
+!reports/**/*.csv
+

@@ -1,0 +1,44 @@
+# Standardized Internal Schema Mapping
+# Allows seamlessly switching between Synthetic, NYS SPARCS, and MIMIC-IV datasets
+
+standard_fields:
+  patient_id: "patient_id"
+  arrival_timestamp: "arrival_time"
+  service_start_timestamp: "service_start"
+  service_end_timestamp: "service_end"
+  length_of_stay_days: "length_of_stay"
+  admission_type: "admission_type"
+  department: "department"
+  disposition: "disposition"
+  severity: "severity"
+
+mappings:
+  synthetic:
+    patient_id: "patient_id"
+    arrival_timestamp: "arrival_time"
+    service_start_timestamp: "service_start"
+    service_end_timestamp: "service_end"
+    length_of_stay_days: "length_of_stay"
+    admission_type: "admission_type"
+    department: "department"
+    disposition: "disposition"
+    severity: "severity"
+
+  sparcs:
+    patient_id: "Facility ID"
+    length_of_stay_days: "Length of Stay"
+    admission_type: "Type of Admission"
+    department: "APR Medical Surgical Description"
+    disposition: "Patient Disposition"
+    severity: "APR Severity of Illness Description"
+    drg_code: "APR DRG Code"
+    ed_indicator: "Emergency Department Indicator"
+
+  mimic_iv:
+    patient_id: "subject_id"
+    admission_id: "hadm_id"
+    arrival_timestamp: "admittime"
+    service_end_timestamp: "dischtime"
+    admission_type: "admission_type"
+    disposition: "discharge_location"
+    careunit: "careunit"

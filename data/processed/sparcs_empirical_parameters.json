@@ -1,0 +1,22 @@
+{
+  "sample_size": 250000,
+  "overall_mean_los_days": 5.386,
+  "overall_variance_los": 57.77,
+  "overall_cv2": 1.991,
+  "memoryless_property_holds": false,
+  "admission_type_proportions": {
+    "Emergency": 0.5554,
+    "Elective": 0.2333,
+    "Urgent": 0.1265,
+    "Newborn": 0.0839,
+    "Not Available": 0.0009
+  },
+  "patient_disposition_proportions": {
+    "Home or Self Care": 0.6897,
+    "Home w/ Home Health Services": 0.1131,
+    "Skilled Nursing Home": 0.0952,
+    "Expired": 0.0213,
+    "Short-term Hospital": 0.0178,
+    "Inpatient Rehabilitation Facility": 0.0166
+  }
+}
