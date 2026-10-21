@@ -140,30 +140,30 @@ Evaluating these formulas with our parameters ($c = 293, \lambda_1 = 30, \lambda
 * **Unprioritized FCFS Baseline:**
   $$W_q^{\text{FCFS}} = \frac{0.001875}{1 - 0.9191} = \mathbf{0.0232\text{ days}} = \mathbf{0.56\text{ hours}} \approx \mathbf{33.4\text{ minutes}}$$
 
-### Verification of Aggregate Work Balance
-In this setting where both classes have identical service distributions, the weighted average queueing delay satisfies:
+### Internal Consistency Check for the Heuristic
+In this setting where both classes have identical service distributions, the weighted average queueing delay under the heuristic satisfies:
 $$\bar{W}_q = \frac{\lambda_1 W_{q,1} + \lambda_2 W_{q,2}}{\lambda_1 + \lambda_2} = \frac{30(0.0042) + 20(0.0517)}{50} = \frac{0.126 + 1.034}{50} = \mathbf{0.0232\text{ days}}$$
 
-This matches the FCFS mean delay ($W_q^{\text{FCFS}} = 0.0232$ days), illustrating that non-preemptive priority reallocates latency between classes without altering the aggregate waiting workload.
+This matches the FCFS mean delay ($W_q^{\text{FCFS}} = 0.0232$ days = 33.4 minutes). This identity reflects the algebraic internal consistency of the selected heuristic weighting scheme rather than an independent validation of Kleinrock's conservation law in multi-server priority systems.
 
 ### Validation Against Discrete-Event Simulation (DES)
-To evaluate the accuracy of this heuristic approximation, we simulated a 1,200-day sample path of a multi-server priority queue ($c = 293, \lambda_1 = 30, \lambda_2 = 20, \mu = 0.18567$):
+To evaluate the heuristic approximation against empirical sample paths, we implemented a two-class non-preemptive multi-server priority DES in `src.priority_simulation` and executed 10 independent replications ($c = 293, \lambda_1 = 30.0, \lambda_2 = 20.0, \mu = 0.18567$, 730 days per replication with a 100-day time-based warm-up):
 
-| Metric | Analytical Heuristic | Simulation (1,200 days) | Discrepancy / Observation |
-| :--- | :---: | :---: | :--- |
-| **Emergency Wait ($W_{q,1}$)** | **6.05 mins** (0.0042 d) | **3.59 mins** (0.0025 d) | Heuristic provides a conservative upper bound |
-| **Elective Wait ($W_{q,2}$)** | **74.45 mins** (0.0517 d) | **25.61 mins** (0.0178 d) | Heuristic overestimates delay in multi-server pooling |
-| **Overall Mean Wait ($\bar{W}_q$)** | **33.41 mins** (0.0232 d) | **12.40 mins** (0.0086 d) | Multi-server pooling attenuates queues relative to formula |
+| Priority Class / Metric | Evaluated Sample Size (Per Rep / Total) | Analytical Heuristic | 10-Replication DES (Mean $\pm$ 95% CI) | Observed Replication Range | Methodological Assessment |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| **Emergency Wait ($W_{q,1}$)** | 18,890 / 188,900 patients | **6.05 mins** (0.0042 d) | **$5.29 \pm 1.56$ mins** | $3.23$ to $11.07$ mins | Heuristic falls within 95% CI ($[3.73, 6.85]$ mins) |
+| **Elective Wait ($W_{q,2}$)** | 12,677 / 126,770 patients | **74.45 mins** (0.0517 d, 1.24 h) | **$57.26 \pm 35.10$ mins** ($0.95 \pm 0.59$ h) | $19.38$ to $193.11$ mins ($0.32$ to $3.22$ h) | Heuristic falls within 95% CI ($[22.16, 92.36]$ mins) |
+| **Overall Mean Wait ($\bar{W}_q$)** | 31,567 / 315,670 patients | **33.41 mins** (0.0232 d, 0.56 h) | **$26.21 \pm 15.15$ mins** | $9.76$ to $84.87$ mins | Both methods capture systemic queue pooling |
 
-*Tolerance Note:* The analytical multi-server priority heuristic treats the probability of delay as an aggregate block, which tends to overestimate waiting times compared to DES in large server systems ($c > 100$). However, both methods consistently demonstrate that priority scheduling compresses emergency queue delays by approximately an order of magnitude relative to elective cases.
+*Methodological Note on Bound Claims and Variance:* The analytical heuristic point estimates ($W_{q,1} = 6.05$ mins, $W_{q,2} = 74.45$ mins) exceed the 10-replication sample averages ($5.29$ mins and $57.26$ mins); however, we do **not** claim the heuristic is a guaranteed "conservative upper bound." At heavy utilization ($\rho \approx 91.9\%$), multi-server queue dynamics exhibit substantial autocorrelated variance across multi-year sample paths (with individual replication elective waits spanning from $19.38$ mins up to $193.11$ mins). The heuristic instead serves as an expected-value approximation that comfortably lies within the empirical 95% confidence intervals. Both analytical and simulation models demonstrate an order-of-magnitude reduction in emergency patient queue delay relative to scheduled elective admissions.
 
 ### Clinical Interpretation
-* In acute emergency medicine, minimizing pre-admission boarding directly supports clinical intervention windows (e.g., target 4-hour ED disposition limits).
-* For scheduled elective admissions, planned hospital arrival times and designated pre-admission lounges can accommodate average delays of ~1.2 hours without clinical deterioration.
+* In acute emergency medicine, minimizing pre-admission boarding directly supports clinical intervention windows (e.g., target 4-hour ED disposition benchmarks).
+* For scheduled elective admissions, planned hospital arrival schedules and designated pre-admission holding areas can accommodate moderate waiting times without acute clinical compromise.
 
 ---
 
-## 5. Finite-Buffer $M/M/c/K$ Holding vs. Ambulance Diversion
+## 5. Model-Based Buffer Sensitivity Scenario ($M/M/c/K$ Holding vs. Ambulance Diversion)
 
 Emergency departments do not have unconstrained waiting areas. An ED typically operates $c$ clinical treatment bays and an observation/holding buffer of $B$ boarding beds, yielding a total department capacity:
 $$K = c + B$$
@@ -178,27 +178,28 @@ $$\pi_n = \begin{cases}
 \end{cases}$$
 where $\pi_0$ normalizes the sum to 1. The ambulance diversion probability is $\pi_K$.
 
-### Empirical Buffer Sensitivity ($c = 12\text{ bays}, \lambda = 2.5\text{ arr/hr}, 1/\mu = 4.0\text{ hrs} \implies a = 10.0$)
+### Model-Based Buffer Sensitivity Scenario ($c = 12\text{ bays}, \lambda = 2.5\text{ arr/hr}, 1/\mu = 4.0\text{ hrs} \implies a = 10.0$)
 
-| Holding Buffer ($B$) | Total Capacity ($K = 12 + B$) | Ambulance Diversion Rate ($\pi_K$) | Mean Boarding Wait ($W_q$) | Operational Status |
+| Holding Buffer ($B$) | Total Capacity ($K = 12 + B$) | Modeled Diversion Rate ($\pi_K$) | Mean Boarding Wait ($W_q$) | Operational Evaluation |
 | :---: | :---: | :---: | :---: | :--- |
-| **$B = 0$** | 12 | **12.4%** | **0.0 hours** | Zero holding; high ambulance diversion |
+| **$B = 0$** | 12 | **12.4%** | **0.0 hours** | Zero holding buffer; high modeled diversion |
 | **$B = 4$** | 16 | **7.8%** | **1.2 hours** | Substantial diversion frequency |
 | **$B = 8$** | 20 | **4.9%** | **2.1 hours** | Moderate diversion reduction |
 | **$B = 12$** | 24 | **3.5%** | **2.9 hours** | Approaching clinical target |
 | **$B = 16$** | 28 | **2.8%** | **3.6 hours** | **Balanced operational trade-off** |
 | **$B = 20$** | 32 | **1.4%** | **4.8 hours** | Low diversion; prolonged hallway boarding |
 
-*Operational Tradeoff:* Expanding the holding buffer from $B = 0$ to $B = 16$ reduces ambulance diversion from $12.4\%$ to $2.8\%$, while increasing the expected waiting time for boarding patients to $3.6$ hours.
+*Operational Tradeoff:* Under this stylized scenario, expanding the holding buffer from $B = 0$ to $B = 16$ yields a lower modeled loss probability (diverted ambulance rate decreases from $12.4\%$ to $2.8\%$), accompanied by an increase in modeled average boarding holding delay to $3.6$ hours.
 
 ---
 
 ## 6. Standalone Python Verification Script
 
-The following script reproduces the capacity sizing, priority wait times, and finite-buffer metrics:
+The following script reproduces the capacity sizing, priority wait times, and finite-buffer metrics, and runs a reproducible priority simulation check:
 
 ```python
 import numpy as np
+from src.priority_simulation import run_priority_replications
 
 def erlang_b(c, a):
     b = 1.0
@@ -241,6 +242,13 @@ print(f"\nPriority Queue Heuristic (c = {c_optimal}):")
 print(f"  Emergency Wq1 : {wq1:.5f} days = {wq1*24*60:.1f} mins ({wq1*24:.2f} hrs)")
 print(f"  Elective Wq2  : {wq2:.5f} days = {wq2*24*60:.1f} mins ({wq2*24:.2f} hrs)")
 print(f"  FCFS Baseline : {wq_fcfs:.5f} days = {wq_fcfs*24*60:.1f} mins ({wq_fcfs*24:.2f} hrs)")
+
+# 3. Reproducible Priority DES (10 Replications x 730 days)
+print("\nRunning Priority Discrete-Event Simulation (10 replications)...")
+sim_res = run_priority_replications(n_replications=10, c=c_optimal, lambda_emergency=l1, lambda_elective=l2, mu=mu, sim_days=730.0, warmup_days=100.0, base_seed=1000)
+print(f"  DES Emergency Wait: {sim_res['emergency_wait_mins']['mean']:.2f} +/- {sim_res['emergency_wait_mins']['ci_95']:.2f} mins")
+print(f"  DES Elective Wait : {sim_res['elective_wait_mins']['mean']:.2f} +/- {sim_res['elective_wait_mins']['ci_95']:.2f} mins ({sim_res['elective_wait_hours']['mean']:.2f} hrs)")
+print(f"  DES Overall Mean  : {sim_res['total_wait_mins']['mean']:.2f} +/- {sim_res['total_wait_mins']['ci_95']:.2f} mins")
 ```
 
 ---

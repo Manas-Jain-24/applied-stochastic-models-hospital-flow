@@ -168,7 +168,7 @@ Fox (1966) showed that for separable, monotonically decreasing, strictly convex 
 | **MedSurg Beds ($c_{\text{MedSurg}}$)** | **172 beds** | **154 beds** | **-18 beds** reallocated from convalescence |
 | **Total Beds Allocated** | 230 beds | 230 beds | Complies with bed constraint |
 | **ICU Rejection Rate ($B_{\text{ICU}}$)** | **6.61%** | **0.20%** | **Substantial improvement in ICU access** |
-| **ED Rejection Rate ($B_{\text{ED}}$)** | 6.63% | 0.51% | Prevents ambulance diversion |
+| **ED Rejection Rate ($B_{\text{ED}}$)** | 6.63% | 0.51% | Lower modeled loss probability under the specified Erlang-B assumptions |
 | **MedSurg Rejection Rate ($B_{\text{MedSurg}}$)** | 0.68% | 4.71% | Manageable elective deferrals |
 | **Total Weighted Loss Function** | **0.4037** | **0.0655** | **83.8% reduction in weighted loss** |
 

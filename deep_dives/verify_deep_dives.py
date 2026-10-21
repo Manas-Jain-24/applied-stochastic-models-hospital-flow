@@ -1,7 +1,8 @@
 """
 Automated verification script for all three Deep Dive modules.
-Executes the mathematical models and checks numerical tolerances against the exact
-parameters, tables, and narrative documented in deep_dives/.
+The verification script checks the documented analytical scenarios and benchmark calculations.
+Empirical distribution-fit statistics require the restricted SPARCS source data and original
+fitting pipeline.
 """
 import sys
 from pathlib import Path
@@ -9,6 +10,15 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 import numpy as np
+
+
+def check_test_suite_status():
+    import unittest
+    loader = unittest.TestLoader()
+    suite = loader.discover(str(PROJECT_ROOT / "tests"), pattern="test_*.py")
+    test_count = suite.countTestCases()
+    print(f"[Dynamic Test Suite Status] Discovered {test_count} unit tests across tests/ directory.")
+    return test_count
 
 
 def verify_deep_dive_1():
@@ -27,6 +37,7 @@ def verify_deep_dive_1():
 def verify_deep_dive_2():
     print("[Deep Dive 2] Verifying Bed Capacity Sizing & Priority Queue Metrics...")
     from src.queueing import erlang_b, priority_queue_two_class
+    from src.priority_simulation import run_priority_replications
 
     a = 269.3
     # Check c=269 (100% avg load) has 4.78% blocking
@@ -55,12 +66,38 @@ def verify_deep_dive_2():
     assert abs(w2_days - 0.0517) < 0.0010, f"Elective wait mismatch: {w2_days}"
     assert abs(wm_days - 0.0232) < 0.0010, f"Mean wait mismatch: {wm_days}"
     
-    # Verify aggregate work balance: (lambda1*W1 + lambda2*W2) / lambda_tot == Wm
+    # Internal consistency check for the heuristic: weighted average equals FCFS baseline
     weighted_mean = (30.0 * w1_days + 20.0 * w2_days) / 50.0
-    assert abs(weighted_mean - wm_days) < 1e-4, "Aggregate work balance violated"
+    assert abs(weighted_mean - wm_days) < 1e-4, "Heuristic internal consistency violated"
+
+    # Priority Discrete-Event Simulation (10 independent replications x 730 days, 100d warmup)
+    sim_res = run_priority_replications(
+        n_replications=10,
+        c=c,
+        lambda_emergency=30.0,
+        lambda_elective=20.0,
+        mu=0.18567,
+        sim_days=730.0,
+        warmup_days=100.0,
+        base_seed=1000
+    )
+    sim_w1 = sim_res["emergency_wait_mins"]["mean"]
+    sim_w2 = sim_res["elective_wait_mins"]["mean"]
+    sim_w1_ci = sim_res["emergency_wait_mins"]["ci_95"]
+    sim_w2_ci = sim_res["elective_wait_mins"]["ci_95"]
+
+    assert abs(sim_w1 - 5.29) < 0.1, f"Simulated emergency wait mismatch: {sim_w1}"
+    assert abs(sim_w1_ci - 1.56) < 0.1, f"Simulated emergency CI mismatch: {sim_w1_ci}"
+    assert abs(sim_w2 - 57.26) < 0.5, f"Simulated elective wait mismatch: {sim_w2}"
+    assert abs(sim_w2_ci - 35.10) < 0.5, f"Simulated elective CI mismatch: {sim_w2_ci}"
+    assert sim_w2 > sim_w1, f"Priority discipline inverted: elective={sim_w2}, emergency={sim_w1}"
+    assert sim_res["emergency_wait_mins"]["ci_lower"] <= w1_days * 1440.0 <= sim_res["emergency_wait_mins"]["ci_upper"]
+    assert sim_res["elective_wait_mins"]["ci_lower"] <= w2_days * 1440.0 <= sim_res["elective_wait_mins"]["ci_upper"]
     
     print(f"  PASS: Sizing c* = 293 (Buffer = +23.7 beds, B = {p_block_293*100:.2f}%).")
     print(f"  PASS: Priority queue heuristic: Emer = {w1_days*24*60:.1f}m ({w1_days*24:.2f}h), Elec = {w2_days*24*60:.1f}m ({w2_days*24:.2f}h), Mean = {wm_days*24*60:.1f}m.")
+    print(f"  PASS: Heuristic internal consistency verified (weighted average = FCFS baseline = {wm_days*24*60:.1f}m).")
+    print(f"  PASS: 10-Replication Priority DES validated: Emer = {sim_w1:.2f} +/- {sim_w1_ci:.2f}m, Elec = {sim_w2:.2f} +/- {sim_w2_ci:.2f}m ({sim_res['elective_wait_hours']['mean']:.2f}h).")
 
 
 def verify_deep_dive_3():
@@ -144,9 +181,11 @@ if __name__ == "__main__":
     print("=" * 70)
     print(">>> VERIFYING DEEP-DIVE EXPANSIONS (EXACT DOCUMENTED SCENARIOS) <<<")
     print("=" * 70)
+    check_test_suite_status()
     verify_deep_dive_1()
     verify_deep_dive_2()
     verify_deep_dive_3()
     print("=" * 70)
-    print(">>> ALL DEEP-DIVE CALCULATIONS MATHEMATICALLY VALIDATED <<<")
+    print(">>> VERIFICATION COMPLETE: ANALYTICAL SCENARIOS & BENCHMARKS VALIDATED <<<")
+    print("  Note: Empirical distribution-fit statistics require restricted SPARCS data.")
     print("=" * 70)

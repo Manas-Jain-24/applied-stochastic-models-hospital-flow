@@ -77,6 +77,7 @@ ASM/
 ├── src/                     # Core stochastic modeling Python package
 │   ├── __init__.py
 │   ├── queueing.py          # Erlang-B, Erlang-C, Allen-Cunneen, M/M/c/K, Priority
+│   ├── priority_simulation.py # Two-class non-preemptive multi-server priority DES
 │   ├── jackson_network.py   # Multi-stage Jackson open queueing network
 │   ├── time_varying.py      # PSA diurnal queueing & shift staffing optimization
 │   ├── bed_allocation.py    # Fox's greedy marginal bed allocation optimizer
@@ -89,7 +90,8 @@ ASM/
 │   ├── data_validation.py   # Schema validation & integrity checks
 │   ├── synthetic_generator.py # Reproducible benchmark patient generator
 │   └── config.py            # Global project paths and constants
-└── tests/                   # Complete unit test suite (33 unit tests, 100% passing)
+└── tests/                   # Complete unit test suite (automated discovery, 100% passing)
+    ├── test_priority_simulation.py
     ├── test_queueing.py
     ├── test_jackson_network.py
     ├── test_time_varying.py
