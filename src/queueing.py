@@ -152,11 +152,14 @@ def priority_queue_two_class(
     mu: float
 ) -> Dict[str, Any]:
     """
-    Two-class non-preemptive priority queue:
+    Illustrative two-class priority heuristic, NOT an exact multiserver result:
     Class 1: High priority (Emergency)
     Class 2: Low priority (Elective)
     
-    Both classes share identical service rate mu across c servers.
+    Both classes share identical service rate mu across c servers. The
+    class-specific delay formulas below have not been validated against an
+    exact multiserver priority queue or discrete-event simulation. Do not use
+    their percentages for operational decisions.
     """
     lambda_total = lambda_1 + lambda_2
     rho_1 = lambda_1 / (c * mu)

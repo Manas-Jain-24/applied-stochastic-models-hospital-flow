@@ -62,6 +62,7 @@ data/raw/mimic_full/
 data/raw/mimic_v3_archives/
 tmp/
 output/
+reports/pdf/qa/
 
 # Allow small processed/sample/synthetic datasets and report tables (< 5MB)
 !data/processed/*.csv
