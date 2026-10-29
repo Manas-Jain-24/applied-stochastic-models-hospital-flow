@@ -57,6 +57,12 @@ Desktop.ini
 *.tar.gz
 *.gz
 
+MIMIC*/
+data/raw/mimic_full/
+data/raw/mimic_v3_archives/
+tmp/
+output/
+
 # Allow small processed/sample/synthetic datasets and report tables (< 5MB)
 !data/processed/*.csv
 !data/processed/.gitkeep
@@ -64,4 +70,8 @@ Desktop.ini
 !data/synthetic/.gitkeep
 !data/interim/.gitkeep
 !reports/**/*.csv
+!partner_repo/output_tables/*.csv
+!partner_repo/cms_data/*.csv
+!partner_repo/eicu_demo_data/*.csv
+
 

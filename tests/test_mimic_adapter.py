@@ -53,6 +53,37 @@ class TestMIMICAdapter(unittest.TestCase):
             saved_data = json.load(f)
         self.assertEqual(saved_data["dataset"], "MIMIC-IV")
 
+    def test_mimic_full_data_ingestion_and_calibration(self):
+        """Test MIMIC-IV full clinical dataset calibration (ICU stays & transfers)."""
+        mimic_full = RAW_DATA_DIR / "mimic_full"
+        if not mimic_full.exists():
+            self.skipTest("MIMIC full data folder not found, skipping full test.")
+
+        params = calibrate_mimic_parameters(
+            mimic_dir=mimic_full,
+            output_dir=PROCESSED_DATA_DIR,
+            fallback_dir=self.mimic_dir,
+        )
+
+        # Validate ICU stays (MIMIC-IV v3.1 icustays has ~94,444 stays)
+        self.assertIn("icu_specific", params)
+        icu = params["icu_specific"]
+        self.assertGreater(icu["total_icu_stays"], 50000)
+        self.assertAlmostEqual(icu["mean_los_days"], 3.63, delta=0.5)
+        self.assertGreater(icu["cv2_los"], 1.0)
+
+        # Validate transfers (MIMIC-IV v3.1 transfers has > 2 million records)
+        self.assertIn("ward_transfer_matrix", params)
+        trans = params["ward_transfer_matrix"]
+        self.assertGreater(trans["total_transfers"], 1000000)
+        self.assertEqual(len(trans["departments"]), 5)
+
+        # Validate row stochasticity
+        probs = trans["routing_probabilities"]
+        for src, row in probs.items():
+            row_sum = sum(row.values())
+            self.assertAlmostEqual(row_sum, 1.0, places=3, msg=f"Row {src} probabilities do not sum to 1.0")
+
 
 if __name__ == "__main__":
     unittest.main()

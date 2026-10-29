@@ -1,0 +1,4 @@
+scenario,p_abandon_pct,mean_board_delay_h,ed_utilization,icu_utilization,improvement_vs_baseline
+Baseline (c2 = 90 ICU beds),4.804%,2.252,0.812,0.863,---
+Capacity scenario A (c2 = 100 ICU beds),4.410%,0.769,0.812,0.790,P_abandon: -8.2%;  Boarding: -65.9%
+Capacity scenario B (c2 = 110 ICU beds),4.683%,0.042,0.810,0.712,P_abandon: -2.5%;  Boarding: -98.2%

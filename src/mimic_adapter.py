@@ -75,18 +75,21 @@ def parse_mimic_transfers(file_path: Path) -> Tuple[pd.DataFrame, pd.DataFrame, 
     df["ward_category"] = df["careunit"].apply(categorize_unit)
     df["stay_days"] = (df["outtime"] - df["intime"]).dt.total_seconds() / 86400.0
 
-    # Build sequence of wards per admission hadm_id
-    df_sorted = df.sort_values(by=["hadm_id", "intime"])
-    transitions = []
+    # Build sequence of wards per admission hadm_id (vectorized for million-row scale)
+    if len(df) > 0:
+        df_sorted = df.sort_values(by=["hadm_id", "intime"]).reset_index(drop=True)
+        same_hadm = df_sorted["hadm_id"] == df_sorted["hadm_id"].shift(-1)
+        internal_from = df_sorted.loc[same_hadm, "ward_category"].values
+        internal_to = df_sorted["ward_category"].shift(-1).loc[same_hadm].values
+        discharge_from = df_sorted.loc[~same_hadm, "ward_category"].values
+        discharge_to = np.full(len(discharge_from), "Discharge")
 
-    for _, group in df_sorted.groupby("hadm_id"):
-        wards = group["ward_category"].tolist()
-        for i in range(len(wards) - 1):
-            transitions.append((wards[i], wards[i + 1]))
-        if wards:
-            transitions.append((wards[-1], "Discharge"))
-
-    trans_df = pd.DataFrame(transitions, columns=["from_ward", "to_ward"])
+        trans_df = pd.DataFrame({
+            "from_ward": np.concatenate([internal_from, discharge_from]),
+            "to_ward": np.concatenate([internal_to, discharge_to]),
+        })
+    else:
+        trans_df = pd.DataFrame(columns=["from_ward", "to_ward"])
     unique_wards = sorted(list(set(df["ward_category"].unique())))
     all_nodes = unique_wards + ["Discharge"]
 
@@ -123,21 +126,32 @@ def parse_mimic_triage(file_path: Path) -> pd.DataFrame:
 def calibrate_mimic_parameters(
     mimic_dir: Path,
     output_dir: Path,
+    fallback_dir: Optional[Path] = None,
 ) -> Dict[str, Any]:
     """
     Calibrate hospital stochastic parameters from MIMIC directory
-    and export JSON and summary tables.
+    and export JSON and summary tables. Optionally fall back to a
+    secondary directory (e.g. demo) for any unsupplied tables.
     """
     mimic_dir = Path(mimic_dir)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    def find_file(pattern: str) -> Optional[Path]:
+        cands = list(mimic_dir.glob(pattern))
+        if cands:
+            return cands[0]
+        if fallback_dir and Path(fallback_dir).exists():
+            fb_cands = list(Path(fallback_dir).glob(pattern))
+            if fb_cands:
+                return fb_cands[0]
+        return None
+
     params: Dict[str, Any] = {"dataset": "MIMIC-IV"}
 
     # 1. Admissions & Overall LOS
-    adm_candidates = list(mimic_dir.glob("**/admissions.csv*"))
-    if adm_candidates:
-        adm_path = adm_candidates[0]
+    adm_path = find_file("**/admissions.csv*")
+    if adm_path:
         adm_df = parse_mimic_admissions(adm_path)
         los = adm_df["los_days"].values
 
@@ -149,6 +163,7 @@ def calibrate_mimic_parameters(
         mortality_rate = float(adm_df["hospital_expire_flag"].mean()) if "hospital_expire_flag" in adm_df.columns else 0.0
 
         params["admissions"] = {
+            "source_file": str(adm_path.name),
             "total_encounters": len(adm_df),
             "mean_los_days": round(mean_los, 3),
             "variance_los": round(var_los, 3),
@@ -158,9 +173,8 @@ def calibrate_mimic_parameters(
         }
 
     # 2. Transfers & Network Routing Matrix
-    trans_candidates = list(mimic_dir.glob("**/transfers.csv*"))
-    if trans_candidates:
-        trans_path = trans_candidates[0]
+    trans_path = find_file("**/transfers.csv*")
+    if trans_path:
         trans_df, P_matrix, unique_wards = parse_mimic_transfers(trans_path)
 
         # Department-specific LOS
@@ -179,6 +193,8 @@ def calibrate_mimic_parameters(
                 }
 
         params["ward_transfer_matrix"] = {
+            "source_file": str(trans_path.name),
+            "total_transfers": len(trans_df),
             "departments": unique_wards,
             "routing_probabilities": {
                 row: {col: round(float(P_matrix.loc[row, col]), 4) for col in P_matrix.columns}
@@ -188,14 +204,15 @@ def calibrate_mimic_parameters(
         }
 
     # 3. ICU-specific metrics
-    icu_candidates = list(mimic_dir.glob("**/icustays.csv*"))
-    if icu_candidates:
-        icu_df = parse_mimic_icustays(icu_candidates[0])
+    icu_path = find_file("**/icustays.csv*")
+    if icu_path:
+        icu_df = parse_mimic_icustays(icu_path)
         icu_los = icu_df["los_days"].dropna().values
         if len(icu_los) > 0:
             m_icu = float(np.mean(icu_los))
             v_icu = float(np.var(icu_los, ddof=1)) if len(icu_los) > 1 else 0.0
             params["icu_specific"] = {
+                "source_file": str(icu_path.name),
                 "total_icu_stays": len(icu_los),
                 "mean_los_days": round(m_icu, 3),
                 "variance_los": round(v_icu, 3),
@@ -203,9 +220,9 @@ def calibrate_mimic_parameters(
             }
 
     # 4. ED Triage Acuity
-    triage_candidates = list(mimic_dir.glob("**/triage.csv*"))
-    if triage_candidates:
-        triage_df = parse_mimic_triage(triage_candidates[0])
+    triage_path = find_file("**/triage.csv*")
+    if triage_path:
+        triage_df = parse_mimic_triage(triage_path)
         if "acuity" in triage_df.columns:
             acuity_counts = triage_df["acuity"].value_counts(normalize=True).sort_index().to_dict()
             params["ed_triage_acuity"] = {
@@ -223,10 +240,16 @@ def calibrate_mimic_parameters(
 
 if __name__ == "__main__":
     from src.config import RAW_DATA_DIR, PROCESSED_DATA_DIR
-    mimic_path = RAW_DATA_DIR / "mimic_demo"
-    if mimic_path.exists():
-        res = calibrate_mimic_parameters(mimic_path, PROCESSED_DATA_DIR)
+    mimic_full = RAW_DATA_DIR / "mimic_full"
+    mimic_demo = RAW_DATA_DIR / "mimic_demo"
+    if mimic_full.exists():
+        print("Calibrating from full MIMIC dataset with demo fallback...")
+        res = calibrate_mimic_parameters(mimic_full, PROCESSED_DATA_DIR, fallback_dir=mimic_demo)
+        print("Calibrated MIMIC parameters summary:")
+        print(json.dumps(res, indent=2))
+    elif mimic_demo.exists():
+        res = calibrate_mimic_parameters(mimic_demo, PROCESSED_DATA_DIR)
         print("Calibrated MIMIC parameters summary:")
         print(json.dumps(res, indent=2))
     else:
-        print(f"MIMIC directory not found at {mimic_path}. Run download_mimic_demo.py first.")
+        print(f"MIMIC directory not found. Run download_mimic_demo.py first.")

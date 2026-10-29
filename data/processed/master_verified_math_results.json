@@ -1,0 +1,168 @@
+{
+  "Q1": {
+    "sparcs": {
+      "mean_days": 5.386,
+      "var_days": 57.77,
+      "cv2": 1.991
+    },
+    "eicu": {
+      "mean_hours": 58.34575358851676,
+      "std_hours": 83.0368443787925,
+      "cv2": 2.025
+    },
+    "mimic_icu": {
+      "mean_days": 3.63,
+      "var_days": 29.187,
+      "cv2": 2.215
+    }
+  },
+  "Q2": {
+    "annual_volume": 100448.16666666669,
+    "lambda_day": 275.2,
+    "peak_hour": 20,
+    "trough_hour": 11,
+    "p_peak": 0.0621165644171779,
+    "p_trough": 0.0214723926380368,
+    "lambda_peak_hourly": 17.09,
+    "lambda_trough_hourly": 5.91,
+    "peak_ratio": 2.89
+  },
+  "Q3": {
+    "230": {
+      "rho": 0.9783,
+      "P_Q": 0.648,
+      "W_q_days": 0.648,
+      "W_q_hours": 15.55
+    },
+    "235": {
+      "rho": 0.9574,
+      "P_Q": 0.3993,
+      "W_q_days": 0.1996,
+      "W_q_hours": 4.79
+    },
+    "240": {
+      "rho": 0.9375,
+      "P_Q": 0.2325,
+      "W_q_days": 0.0775,
+      "W_q_hours": 1.86
+    },
+    "242": {
+      "rho": 0.9298,
+      "P_Q": 0.1842,
+      "W_q_days": 0.0542,
+      "W_q_hours": 1.3
+    }
+  },
+  "Q4": {
+    "150": {
+      "P_block": 0.0624,
+      "P_block_pct": 6.24
+    },
+    "160": {
+      "P_block": 0.02825,
+      "P_block_pct": 2.82
+    },
+    "165": {
+      "P_block": 0.01676,
+      "P_block_pct": 1.68
+    },
+    "168": {
+      "P_block": 0.01167,
+      "P_block_pct": 1.17
+    },
+    "169": {
+      "P_block": 0.01025,
+      "P_block_pct": 1.03
+    },
+    "170": {
+      "P_block": 0.00896,
+      "P_block_pct": 0.9
+    },
+    "minimum_capacity_for_one_pct": 170
+  },
+  "Q5": {
+    "kingman_mult_sparcs": 1.496,
+    "kingman_mult_eicu": 1.513,
+    "kingman_mult_mimic": 1.607,
+    "eicu_penalty_pct": 51.3,
+    "mimic_penalty_pct": 60.7
+  },
+  "Q6_Q7": {
+    "c2_sweep": {
+      "70": {
+        "icu_util": 0.9892672606935304,
+        "p_abandon": 0.1550169994619342,
+        "mean_board_delay_hours_conditional": 8.22564008650782
+      },
+      "80": {
+        "icu_util": 0.9471234776343548,
+        "p_abandon": 0.077445545395502,
+        "mean_board_delay_hours_conditional": 4.432522043439209
+      },
+      "90": {
+        "icu_util": 0.8633808003158657,
+        "p_abandon": 0.0480387790706153,
+        "mean_board_delay_hours_conditional": 2.252075861769369
+      },
+      "100": {
+        "icu_util": 0.7898143174338785,
+        "p_abandon": 0.0441046985400656,
+        "mean_board_delay_hours_conditional": 0.7689176515099932
+      },
+      "110": {
+        "icu_util": 0.711868768739524,
+        "p_abandon": 0.0468254210600882,
+        "mean_board_delay_hours_conditional": 0.041653380847265
+      },
+      "120": {
+        "icu_util": 0.6517892371799722,
+        "p_abandon": 0.0443933717798198,
+        "mean_board_delay_hours_conditional": 0.0
+      }
+    },
+    "caution": "The eICU hospital-admission offset is not an observed ED boarding interval; simulation and CMS cohorts are not matched."
+  },
+  "Q8": {
+    "rho1_emergency": 0.20833333333333334,
+    "rho2_elective": 0.7291666666666666,
+    "Wq1_priority": 0.146,
+    "Wq2_elective": 2.35,
+    "Wq_fifo": 1.86,
+    "emergency_delay_reduction_pct": 92.1,
+    "caution": "Multiserver priority outputs are heuristic; the class-specific formula has not been independently validated."
+  },
+  "Q9": {
+    "all_stable": true,
+    "bottleneck": "MedSurg",
+    "bottleneck_util": 0.8648,
+    "mean_end_to_end_los": 5.19,
+    "total_in_system": 233.5
+  },
+  "Q10": {
+    "constant_peak_wait_min": 41.5,
+    "dynamic_peak_wait_min": 1.1,
+    "wait_reduction_pct": 97.3,
+    "extra_bed_hours_required": 0
+  },
+  "Q11": {
+    "expected_steps_from_ed": 1.533,
+    "expected_steps_from_icu": 1.603,
+    "absorption_icu_home": 0.8888,
+    "absorption_icu_expired": 0.1112
+  },
+  "Q12": {
+    "optimal_weighted_blocking": 0.0655,
+    "proportional_weighted_blocking": 0.40374,
+    "blocking_reduction_pct": 83.8,
+    "optimal_beds": {
+      "ICU": 33,
+      "Emergency": 43,
+      "MedSurg": 154
+    },
+    "proportional_beds": {
+      "ICU": 24,
+      "Emergency": 34,
+      "MedSurg": 172
+    }
+  }
+}

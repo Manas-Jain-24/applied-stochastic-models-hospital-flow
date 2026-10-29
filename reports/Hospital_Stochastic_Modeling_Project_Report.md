@@ -1,3 +1,5 @@
+> **Historical draft — superseded.** Use the revised 27-page submission PDF and `data/processed/master_verified_math_results.json` for current calculations. Its 85.1% bed-allocation claim is outdated; the current illustrative objective reduction is 83.8%.
+
 # Data-Driven Stochastic Modeling and Simulation of Hospital Patient Flow, Congestion, and Resource Planning
 
 **Course:** Applied Stochastic Models (ASM)  
@@ -409,4 +411,6 @@ All analytical algorithms, synthetic generators, and test suites are public and 
 * **Verification Command:** `python scripts/verify_all.py`
 * **Interactive Notebook:** `notebooks/01_stochastic_hospital_flow.ipynb`
 * **MIMIC Calibration Output:** `data/processed/mimic_empirical_parameters.json`
+
+> **Historical draft — superseded.** Use the revised 27-page submission PDF and `data/processed/master_verified_math_results.json` for current calculations. Its 85.1% bed-allocation claim is outdated; the current illustrative objective reduction is 83.8%.
 

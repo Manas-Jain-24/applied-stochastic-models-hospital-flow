@@ -1,5 +1,7 @@
 # Applied Stochastic Models (ASM) Course Project
 
+**Current submission:** [27-page revised report](reports/pdf/Hospital_Patient_Flow_ASM_Submission_Report.pdf). Earlier narrative reports under `reports/` are historical drafts and contain superseded calculations. The revised report and `scripts/verify_all_math_results.py` are the current numerical reference. The ED/ICU simulation does **not** pass external CMS validation (4.80% modeled abandonment versus 2.33% CMS); its capacity sweep is illustrative.
+
 ## Project: Stochastic Modeling of Hospital Inpatient Bed Capacity & Patient Flow
 
 ### Overview
@@ -27,11 +29,11 @@ This project applies stochastic modeling, queueing theory, and discrete-event si
    - Dynamic peak-hour shift staffing reducing peak queue delays by 97.3% under zero extra bed-hours.
 6. **Multi-Department Bed Allocation Optimization:**
    - Discrete convex optimization via Fox's greedy marginal allocation algorithm minimizing weighted hospital blocking.
-   - Saves 85.1% weighted blocking compared to naive proportional sizing.
+   - Reduces the chosen weighted blocking objective by 83.8% compared with proportional sizing in an illustrative 230-bed scenario.
 7. **Absorbing Markov Chains:**
    - Patient disposition and downstream care pathway transition matrix ($N = (I-Q)^{-1}$, $B = NR$).
 8. **Discrete-Event Stochastic Simulation (DES):**
-   - Event calendar simulation validating theoretical queueing equations against stochastic arrival and departure dynamics.
+   - Event calendar simulation checking implementation and stress behavior; external empirical validation remains incomplete.
    - Stress testing under surge scenarios ($\lambda + 25\%$, $c - 10\%$).
 9. **Modular MIMIC Ingestion Adapter:**
    - Calibrates empirical stochastic parameters from MIMIC-IV and MIMIC-IV-ED schemas.
@@ -47,30 +49,53 @@ ASM/
 ├── requirements.txt         # Core scientific Python packages
 ├── configs/                 # Pipeline & schema configuration
 │   ├── config.yaml          # Global pipeline & simulation settings
-│   └── schema_mapping.yaml  # SPARCS dataset schema definitions
+│   └── schema_mapping.yaml  # SPARCS & MIMIC dataset schema definitions
 ├── data/                    # Multi-tiered data directory
-│   ├── raw/                 # Local raw data (git-ignored, >2.5 GB)
-│   │   ├── sparcs/          # NYS SPARCS inpatient discharge CSVs
-│   │   ├── mimic_demo/      # Open-access MIMIC-IV & MIMIC-IV-ED Demo
+│   ├── raw/                 # Local raw data (git-ignored)
+│   │   ├── sparcs/          # NYS SPARCS inpatient discharge CSVs (~250k records)
+│   │   ├── mimic_full/      # MIMIC-IV v3.1 (2.0M transfers, 94.4k ICU stays)
+│   │   ├── mimic_v3_archives/# MIMIC-IV raw gzip/zip multi-GB archive files
+│   │   ├── mimic_demo/      # Open-access PhysioNet MIMIC-IV & ED Demo v2.2
 │   │   ├── nys_health/      # NYS Health demographics & bed census CSVs
 │   │   └── oecd/            # OECD international hospital indicators CSVs
 │   ├── interim/             # Staged intermediate datasets
 │   ├── processed/           # Empirical parameters JSONs (SPARCS & MIMIC) & summaries
 │   └── synthetic/           # Benchmark synthetic patient cohorts
+├── partner_repo/            # Partner module: eICU-CRD v2.0.1 & CMS Hospital Queueing
+│   ├── README.md            # Module architecture & instructions
+│   ├── 01_eda_and_preprocessing.py        # Ingestion, cohort breakdown & CMS benchmarks
+│   ├── 02_nhpp_arrival_and_service_fitting.py # NHPP diurnal rates & Weibull/Gamma MLE fits
+│   ├── 03_markov_chain_analysis.py        # DTMC & CTMC routing, matrix exp P(t)=exp(Qt)
+│   ├── 04_tandem_queue_simulation.py      # SimPy tandem queue DES with ED boarding
+│   ├── 05_model_validation_and_policy.py  # Erlang-A validation & policy counterfactuals
+│   ├── MATHEMATICAL_MODEL_AND_RESULTS.md  # Comprehensive mathematical report
+│   ├── cms_data/            # CMS hospital benchmarks
+│   ├── eicu_demo_data/      # eICU-CRD v2.0.1 tables (2,520 stays)
+│   ├── output_plots/        # 10 publication figures
+│   ├── output_tables/       # 22 summary CSV tables
+│   └── downloaders/         # Data fetcher utilities
 ├── docs/                    # Course and project documentation
 │   ├── ASM Project 2026M.pdf # Official course assignment & rubrics
 │   └── project_guidelines.txt# Problem statement & milestone guidelines
 ├── notebooks/               # Interactive Jupyter analysis notebooks
 │   └── 01_stochastic_hospital_flow.ipynb # Runnable end-to-end notebook
 ├── reports/                 # Deliverables, reports, and publication assets
-│   ├── Hospital_Stochastic_Modeling_Project_Report.pdf # Formal ReportLab PDF (all 9 figures)
+│   ├── pdf/                 # Centralized destination for all 7 compiled PDF reports
+│   │   ├── Hospital_Stochastic_Modeling_Project_Report.pdf # Formal 10-12 page report
+│   │   ├── Hospital_Flow_Project_Group_Briefing.pdf       # Group briefing for partners
+│   │   ├── Hospital_Flow_Models_and_DeepDives_Readable_Guide.pdf # Visual model guide
+│   │   ├── Questions_Models_Datasets_and_DeepDives_Guide.pdf     # Viva / defense guide
+│   │   ├── Team_Project_Master_Walkthrough.pdf             # Master walkthrough
+│   │   ├── Team_Project_Overview_Briefing.pdf              # Overview briefing
+│   │   └── Stochastic_Process_Models_Healthcare_Report.pdf  # Technical process report
 │   ├── Hospital_Stochastic_Modeling_Project_Report.md  # Markdown report source
+│   ├── partner_integration_summary.md                 # Joint dual-track synthesis
 │   ├── project_overview_for_team.md                   # Summary briefing for teammates
 │   ├── data_feasibility_report.md                     # Data pipeline evaluation
 │   ├── figures/             # 9 publication-grade 300 DPI figures
 │   └── tables/              # Exported summary tables
 ├── scripts/                 # Standalone automation & verification scripts
-│   ├── verify_all.py        # 10-step unified verification suite
+│   ├── verify_all.py        # 11-step master unified verification suite
 │   ├── download_mimic_demo.py# Downloads MIMIC-IV & MIMIC-ED open demos
 │   ├── generate_pdf_report.py # PDF report compilation script
 │   └── build_notebook.py    # Notebook generation script
@@ -104,6 +129,28 @@ ASM/
     └── test_validation.py
 ```
 
+
+---
+
+### Quickstart & Deliverables
+
+#### 1. Launch Interactive Streamlit Simulator
+Run the live interactive hospital capacity planning simulator dashboard:
+```bash
+streamlit run app.py
+```
+*Features interactive sliders for bed capacity, Erlang-C delay collapse, Erlang-B ambulance diversion, Erlang-A patient walkouts, tandem ICU boarding contention, PSA dynamic nurse shift balancing, Fox's greedy bed allocation, and live SimPy discrete-event simulation.*
+
+#### 2. Run Comprehensive Verification Suite
+Verify all 13 stochastic models, 11 pipeline stages, and 39 unit tests:
+```bash
+python scripts/verify_all.py
+```
+
+#### 3. View Master Reports
+- **Academic Master PDF Report (23 Pages, Full & Dense):** [`reports/pdf/Master_Combined_Stochastic_Hospital_Flow_Report.pdf`](file:///c:/Users/HP/Desktop/ASM/reports/pdf/Master_Combined_Stochastic_Hospital_Flow_Report.pdf)
+- **Technical Markdown Report:** [`reports/Master_Combined_Stochastic_Hospital_Flow_Report.md`](file:///c:/Users/HP/Desktop/ASM/reports/Master_Combined_Stochastic_Hospital_Flow_Report.md)
+- **Verified Numerical Ground Truth:** [`data/processed/master_verified_math_results.json`](file:///c:/Users/HP/Desktop/ASM/data/processed/master_verified_math_results.json)
 
 ---
 

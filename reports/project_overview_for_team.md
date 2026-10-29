@@ -1,3 +1,5 @@
+> **Historical team draft — superseded.** Use the revised 27-page submission PDF for current results. Earlier 85.1% weighted-blocking and externally validated simulation claims should not be cited.
+
 # Applied Stochastic Models: Hospital Patient Flow, Congestion & Bed Capacity Planning
 ## Complete Team Master Guide & Exhaustive Project Walkthrough 🚀
 
@@ -684,3 +686,5 @@ Sir's syllabus specifies a **10–12 page written report** and a **15-minute gro
 * **All 33 unit tests passing in 0.13 seconds.**
 * **All 9 figures generated at 300 DPI.**
 * **GitHub repository clean, verified, and synchronized.**
+> **Historical team draft — superseded.** Use the revised 27-page submission PDF for current results. Earlier 85.1% weighted-blocking and externally validated simulation claims should not be cited.
+
