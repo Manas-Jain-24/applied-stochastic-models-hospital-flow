@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path
 import numpy as np
 import pandas as pd
+import tempfile
 
 # Add project root to sys.path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -19,7 +20,7 @@ def main():
     print("=" * 60)
 
     # 1. RUN ALL UNIT TESTS
-    print("\n[Step 1/10] Running full test suite...")
+    print("\n[Step 1/11] Running full test suite...")
     loader = unittest.TestLoader()
     suite = loader.discover("tests", pattern="test_*.py")
     runner = unittest.TextTestRunner(verbosity=1)
@@ -27,10 +28,11 @@ def main():
     if not test_result.wasSuccessful():
         print("FAIL: Unit tests failed!")
         sys.exit(1)
-    print(f"PASS: All {test_result.testsRun} unit tests passed without errors!")
+    skipped = len(test_result.skipped)
+    print(f"PASS: {test_result.testsRun - skipped} tests passed, {skipped} skipped, 0 failed.")
 
     # 2. VALIDATE SYNTHETIC DATA
-    print("\n[Step 2/10] Validating synthetic benchmark dataset...")
+    print("\n[Step 2/11] Validating synthetic benchmark dataset...")
     from src.data_validation import run_full_validation
     df_synth = pd.read_csv(PROJECT_ROOT / "data" / "synthetic" / "synthetic_hospital_encounters.csv")
     val_report = run_full_validation(
@@ -46,7 +48,7 @@ def main():
     print(f"PASS: 5,000 synthetic encounters validated (0 violations, 0 duplicates).")
 
     # 3. VERIFY QUEUEING MODELS
-    print("\n[Step 3/10] Verifying analytical queueing calculations...")
+    print("\n[Step 3/11] Verifying analytical queueing calculations...")
     from src.queueing import (
         erlang_b, 
         erlang_c, 
@@ -77,7 +79,7 @@ def main():
     print(f"PASS: Erlang-B, Erlang-C, M/G/c, and M/M/c/K checks passed; priority output satisfies only a basic ordering check.")
 
     # 4. VERIFY MARKOV CHAIN
-    print("\n[Step 4/10] Verifying Absorbing Markov Chain & MFPT...")
+    print("\n[Step 4/11] Verifying Absorbing Markov Chain & MFPT...")
     from src.markov_chain import (
         analyze_absorbing_markov_chain, 
         compute_n_step_transition_matrix, 
@@ -104,7 +106,7 @@ def main():
     print("PASS: Fundamental matrix N, absorption probabilities B, and P^3 verified.")
 
     # 5. VERIFY SIMULATION
-    print("\n[Step 5/10] Verifying Discrete-Event Simulation engine...")
+    print("\n[Step 5/11] Verifying Discrete-Event Simulation engine...")
 
     from src.simulation import HospitalSimulation
     sim = HospitalSimulation(
@@ -129,7 +131,10 @@ def main():
     target_dir = mimic_full if mimic_full.exists() else mimic_dir
 
     if target_dir.exists():
-        mimic_params = calibrate_mimic_parameters(target_dir, PROJECT_ROOT / "data" / "processed", fallback_dir=mimic_dir)
+        temp_root = PROJECT_ROOT / "tmp"
+        temp_root.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=temp_root) as output_dir:
+            mimic_params = calibrate_mimic_parameters(target_dir, Path(output_dir), fallback_dir=mimic_dir)
         assert "ward_transfer_matrix" in mimic_params
         source_name = "Full MIMIC-IV" if mimic_full.exists() else "MIMIC-IV Demo"
         transfers_count = mimic_params["ward_transfer_matrix"].get("total_transfers", "N/A")
@@ -138,7 +143,7 @@ def main():
         print("SKIP: MIMIC directory not present.")
 
     # 7. VERIFY JACKSON NETWORK
-    print("\n[Step 7/10] Verifying Multi-Stage Jackson Queueing Network...")
+    print("\n[Step 7/11] Verifying Multi-Stage Jackson Queueing Network...")
     from src.jackson_network import solve_traffic_equations, analyze_jackson_network
     jn_depts = ["ED", "ICU", "MedSurg"]
     jn_gamma = [30.0, 5.0, 10.0]
@@ -153,14 +158,14 @@ def main():
     print(f"PASS: Jackson Network solved (Bottleneck: {jn_res.bottleneck_station}, End-to-End Stay: {jn_res.mean_end_to_end_los:.2f} days).")
 
     # 8. VERIFY TIME-VARYING PSA
-    print("\n[Step 8/10] Verifying Time-Varying Queueing & PSA...")
+    print("\n[Step 8/11] Verifying Time-Varying Queueing & PSA...")
     from src.time_varying import compare_constant_vs_dynamic_staffing
     c_res, d_res = compare_constant_vs_dynamic_staffing(base_beds=425, surge_delta=25)
     assert d_res.peak_wait_time_hours < c_res.peak_wait_time_hours
     print(f"PASS: PSA verified (Constant peak wait: {c_res.peak_wait_time_hours*60:.1f}m -> Dynamic: {d_res.peak_wait_time_hours*60:.1f}m).")
 
     # 9. VERIFY BED ALLOCATION OPTIMIZER
-    print("\n[Step 9/10] Verifying Optimal Multi-Department Bed Allocation...")
+    print("\n[Step 9/11] Verifying Optimal Multi-Department Bed Allocation...")
     from src.bed_allocation import DepartmentSpec, marginal_bed_allocation, proportional_bed_allocation
     ba_depts = [
         DepartmentSpec(name="ICU", offered_load=20.0, weight=4.0, min_beds=21),

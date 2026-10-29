@@ -12970,7 +12970,7 @@ endobj
 endobj
 201 0 obj
 <<
-/Length 5133
+/Length 5084
 >>
 stream
 q
@@ -12986,13 +12986,13 @@ n 49 760.89 m 546.28 760.89 l S
 .145098 .380392 .556863 rg
 BT 1 0 0 1 49 724.89 Tm /F2+0 11 Tf 13.2 TL (Run procedure) Tj T* ET
 q
-1 0 0 1 49 629.89 cm
+1 0 0 1 49 646.09 cm
 q
-BT 1 0 0 1 0 70.5 Tm 16.2 TL .137255 .192157 .227451 rg /F3+0 10.5 Tf 16.2 TL (From the project root, install the packages listed in ) Tj /F4+0 10.5 Tf 16.2 TL (requirements.txt) Tj /F3+0 10.5 Tf 16.2 TL ( and run ) Tj /F4+0 10.5 Tf 16.2 TL (python) Tj T* (scripts/verify_all.py) Tj /F3+0 10.5 Tf 16.2 TL (. The separate ) Tj /F4+0 10.5 Tf 16.2 TL (python scripts/verify_all_math_results.py) Tj /F3+0 10.5 Tf 16.2 TL ( writes) Tj T* (numerical scenario summaries to ) Tj /F4+0 10.5 Tf 16.2 TL (data/processed/master_verified_math_results.json) Tj /F3+0 10.5 Tf 16.2 TL (. The partner) Tj T* (scripts 01 through 05 can be run sequentially from the root. Raw credentialed MIMIC inputs require the) Tj T* (user's authorized local access.) Tj T* ET
+BT 1 0 0 1 0 54.3 Tm 16.2 TL .137255 .192157 .227451 rg /F3+0 10.5 Tf 16.2 TL (From the project root, install ) Tj /F4+0 10.5 Tf 16.2 TL (requirements.txt) Tj /F3+0 10.5 Tf 16.2 TL ( and run ) Tj /F4+0 10.5 Tf 16.2 TL (python scripts/verify_all.py) Tj /F3+0 10.5 Tf 16.2 TL (. Then run) Tj T* /F4+0 10.5 Tf 16.2 TL (python scripts/verify_all_math_results.py) Tj /F3+0 10.5 Tf 16.2 TL ( to refresh the numerical summaries. Use ) Tj /F4+0 10.5 Tf 16.2 TL (streamlit) Tj T* (run app.py) Tj /F3+0 10.5 Tf 16.2 TL ( for the interactive companion. The partner scripts 01 through 05 can be run sequentially from) Tj T* (the root. Raw credentialed MIMIC inputs require authorized local access.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 49 473.09 cm
+1 0 0 1 49 489.29 cm
 q
 .090196 .196078 .301961 rg
 n 0 145.8 497.28 -24.3 re f*
@@ -13111,16 +13111,16 @@ Q
 Q
 Q
 .145098 .380392 .556863 rg
-BT 1 0 0 1 49 446.09 Tm /F2+0 11 Tf 13.2 TL (Conclusions) Tj T* ET
+BT 1 0 0 1 49 462.29 Tm /F2+0 11 Tf 13.2 TL (Conclusions) Tj T* ET
 q
-1 0 0 1 49 367.29 cm
+1 0 0 1 49 383.49 cm
 q
 .137255 .192157 .227451 rg
 BT 1 0 0 1 0 54.3 Tm /F3+0 10.5 Tf 16.2 TL (The study demonstrates a complete applied stochastic modeling pipeline on real hospital-related datasets.) Tj T* (Long and variable stays, time-varying demand and downstream routing materially affect calculated) Tj T* (congestion. Erlang and network formulas make the mechanisms understandable; simulation checks) Tj T* (implementation and exposes where calibration fails.) Tj T* ET
 Q
 Q
 q
-1 0 0 1 49 291.49 cm
+1 0 0 1 49 307.69 cm
 q
 .137255 .192157 .227451 rg
 BT 1 0 0 1 0 54.3 Tm /F3+0 10.5 Tf 16.2 TL (The strongest numerical results are conditional: adding 12 beds in the chosen Erlang-C scenario changes) Tj T* (mean wait from 15.55 to 1.30 hours; reallocating a fixed 230-bed budget changes its weighted blocking) Tj T* (objective from 0.40374 to 0.06550. The next research step is to calibrate and validate the repaired ED/ICU) Tj T* (model on coherent, time-stamped data before presenting patient-level policy effects.) Tj T* ET
@@ -14210,22 +14210,22 @@ xref
 0003945907 00000 n 
 0003946653 00000 n 
 0003946942 00000 n 
-0003952129 00000 n 
-0003952238 00000 n 
-0003953332 00000 n 
-0003953577 00000 n 
-0003991306 00000 n 
-0003992052 00000 n 
-0003992373 00000 n 
-0003992659 00000 n 
-0003992875 00000 n 
-0003993108 00000 n 
-0003993337 00000 n 
-0004001737 00000 n 
-0004001846 00000 n 
-0004002940 00000 n 
-0004003185 00000 n 
-0004040914 00000 n 
+0003952080 00000 n 
+0003952189 00000 n 
+0003953283 00000 n 
+0003953528 00000 n 
+0003991257 00000 n 
+0003992003 00000 n 
+0003992324 00000 n 
+0003992610 00000 n 
+0003992826 00000 n 
+0003993059 00000 n 
+0003993288 00000 n 
+0004001688 00000 n 
+0004001797 00000 n 
+0004002891 00000 n 
+0004003136 00000 n 
+0004040865 00000 n 
 trailer
 <<
 /Size 218
@@ -14233,5 +14233,5 @@ trailer
 /Info 1 0 R
 >>
 startxref
-4041660
+4041611
 %%EOF

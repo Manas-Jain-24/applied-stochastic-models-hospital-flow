@@ -5,9 +5,10 @@ Unit tests for MIMIC Data Ingestion & Calibration Adapter.
 import unittest
 from pathlib import Path
 import json
+import tempfile
 
 from src.mimic_adapter import calibrate_mimic_parameters
-from src.config import RAW_DATA_DIR, PROCESSED_DATA_DIR
+from src.config import RAW_DATA_DIR
 
 
 class TestMIMICAdapter(unittest.TestCase):
@@ -15,13 +16,20 @@ class TestMIMICAdapter(unittest.TestCase):
 
     def setUp(self):
         self.mimic_dir = RAW_DATA_DIR / "mimic_demo"
+        temp_root = Path(__file__).resolve().parent.parent / "tmp"
+        temp_root.mkdir(exist_ok=True)
+        self.output_temp = tempfile.TemporaryDirectory(dir=temp_root)
+        self.output_dir = Path(self.output_temp.name)
+
+    def tearDown(self):
+        self.output_temp.cleanup()
 
     def test_mimic_demo_exists_and_calibrates(self):
         """Test that MIMIC demo data exists and produces expected stochastic parameters."""
         if not self.mimic_dir.exists():
             self.skipTest("MIMIC demo folder not found, skipping calibration test.")
 
-        params = calibrate_mimic_parameters(self.mimic_dir, PROCESSED_DATA_DIR)
+        params = calibrate_mimic_parameters(self.mimic_dir, self.output_dir)
         self.assertIn("admissions", params)
         self.assertIn("ward_transfer_matrix", params)
         self.assertIn("icu_specific", params)
@@ -47,7 +55,7 @@ class TestMIMICAdapter(unittest.TestCase):
             self.assertAlmostEqual(row_sum, 1.0, places=3, msg=f"Row {src} probabilities do not sum to 1.0")
 
         # Check saved JSON
-        json_path = PROCESSED_DATA_DIR / "mimic_empirical_parameters.json"
+        json_path = self.output_dir / "mimic_empirical_parameters.json"
         self.assertTrue(json_path.exists())
         with open(json_path) as f:
             saved_data = json.load(f)
@@ -61,7 +69,7 @@ class TestMIMICAdapter(unittest.TestCase):
 
         params = calibrate_mimic_parameters(
             mimic_dir=mimic_full,
-            output_dir=PROCESSED_DATA_DIR,
+            output_dir=self.output_dir,
             fallback_dir=self.mimic_dir,
         )
 
