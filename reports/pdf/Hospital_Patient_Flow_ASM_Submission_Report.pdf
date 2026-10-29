@@ -7091,7 +7091,7 @@ endobj
 endobj
 117 0 obj
 <<
-/Length 6441
+/Length 6551
 >>
 stream
 q
@@ -7274,37 +7274,37 @@ Q
 Q
 Q
 q
-1 0 0 1 49 439.49 cm
+1 0 0 1 49 423.29 cm
 q
 .137255 .192157 .227451 rg
-BT 1 0 0 1 0 54.3 Tm /F3+0 10.5 Tf 16.2 TL (The master run simulated 1,518 patients over 30 days and reported 72.9% utilization. The event engine) Tj T* (helps check stochastic behavior and stress sensitivity. A single seeded path is not an uncertainty interval.) Tj T* (The partner sweep reports 95% Monte Carlo half-widths across replications; these quantify random) Tj T* (simulation error, not bias from model structure or parameter mismatch.) Tj T* ET
+BT 1 0 0 1 0 70.5 Tm /F3+0 10.5 Tf 16.2 TL (The master run simulated 1,518 patients over 30 days and reported 70.5% time-weighted utilization. It) Tj T* (starts empty, so this short-run average is below a steady-state occupancy estimate and must not be) Tj T* (presented as a calibrated hospital rate. A single seeded path is not an uncertainty interval. The partner) Tj T* -0.086259 Tw (sweep reports 95% Monte Carlo half-widths across replications; these quantify random simulation error, not) Tj T* 0 Tw (bias from model structure or parameter mismatch.) Tj T* ET
 Q
 Q
 .145098 .380392 .556863 rg
-BT 1 0 0 1 49 414.49 Tm /F2+0 11 Tf 13.2 TL (Replication logic) Tj T* ET
+BT 1 0 0 1 49 398.29 Tm /F2+0 11 Tf 13.2 TL (Replication logic) Tj T* ET
 q
-1 0 0 1 49 351.89 cm
+1 0 0 1 49 335.69 cm
 q
 BT 1 0 0 1 0 38.1 Tm 16.2 TL .137255 .192157 .227451 rg /F3+0 10.5 Tf 16.2 TL (For output Y across r independent runs, the sample mean is the average of Y) Tj -5.25 Ts /F3+0 8.5 Tf 16.2 TL (i) Tj 0 Ts /F3+0 10.5 Tf 16.2 TL (, with a t-based half-width) Tj T* (proportional to sample standard deviation divided by the square root of r. Replications should use) Tj T* (independent seeds and remove initialization bias when a steady-state quantity is desired.) Tj T* ET
 Q
 Q
 .933333 .956863 .968627 rg
 n
-54 305.89 m
-541.28 305.89 l
-544.044 305.89 546.28 308.126 546.28 310.89 c
-546.28 335.89 l
-546.28 338.654 544.044 340.89 541.28 340.89 c
-54 340.89 l
-51.236 340.89 49 338.654 49 335.89 c
-49 310.89 l
-49 308.126 51.236 305.89 54 305.89 c
+54 289.69 m
+541.28 289.69 l
+544.044 289.69 546.28 291.926 546.28 294.69 c
+546.28 319.69 l
+546.28 322.454 544.044 324.69 541.28 324.69 c
+54 324.69 l
+51.236 324.69 49 322.454 49 319.69 c
+49 294.69 l
+49 291.926 51.236 289.69 54 289.69 c
 h
 f*
 .090196 .196078 .301961 rg
-BT 1 0 0 1 61 319.89 Tm /F4+0 10.2 Tf 12.24 TL (CI_95 = mean\(Y\) +/- t_\(r-1,0.975\) s\(Y\)/sqrt\(r\)) Tj T* ET
+BT 1 0 0 1 61 303.69 Tm /F4+0 10.2 Tf 12.24 TL (CI_95 = mean\(Y\) +/- t_\(r-1,0.975\) s\(Y\)/sqrt\(r\)) Tj T* ET
 q
-1 0 0 1 49 228.09 cm
+1 0 0 1 49 211.89 cm
 q
 .137255 .192157 .227451 rg
 BT 1 0 0 1 0 54.3 Tm /F3+0 10.5 Tf 16.2 TL (A practical validation run should compare full outcome distributions, not only means. The 90th percentile) Tj T* (wait, diversion count by shift and time spent boarding could be compared on held-out days. Increasing the) Tj T* (replication count reduces Monte Carlo noise, while changes to event logic and parameter calibration) Tj T* (address bias. Both are needed for a credible model, but they solve different problems.) Tj T* ET
@@ -10595,7 +10595,7 @@ endobj
 endobj
 166 0 obj
 <<
-/Length 5491
+/Length 5481
 >>
 stream
 q
@@ -10612,7 +10612,7 @@ q
 1 0 0 1 49 674.09 cm
 q
 .137255 .192157 .227451 rg
-BT 1 0 0 1 0 54.3 Tm /F3+0 10.5 Tf 16.2 TL (The local verification script completed its 11 stages on 29 October 2026. It discovered and passed 39 unit) Tj T* (tests, validated 5,000 synthetic encounters, exercised queueing and Markov calculations, ran simulation,) Tj T* (recalibrated the local MIMIC inputs, solved the network and optimization scenarios, and checked primary) Tj T* (figures plus partner outputs.) Tj T* ET
+BT 1 0 0 1 0 54.3 Tm /F3+0 10.5 Tf 16.2 TL (The local verification script completed its 11 stages on 29 October 2026. It discovered and passed 40 unit) Tj T* (tests, validated 5,000 synthetic encounters, exercised queueing and Markov calculations, ran simulation,) Tj T* (recalibrated the local MIMIC inputs, solved the network and optimization scenarios, and checked primary) Tj T* (figures plus partner outputs.) Tj T* ET
 Q
 Q
 q
@@ -10657,7 +10657,7 @@ q
 1 0 0 1 6 140.1 cm
 q
 .137255 .192157 .227451 rg
-BT 1 0 0 1 0 3.3 Tm /F3+0 9 Tf 12.3 TL (39 unit tests) Tj T* ET
+BT 1 0 0 1 0 3.3 Tm /F3+0 9 Tf 12.3 TL (40 unit tests) Tj T* ET
 Q
 Q
 q
@@ -10727,14 +10727,14 @@ q
 1 0 0 1 130 42.6 cm
 q
 .137255 .192157 .227451 rg
-BT 1 0 0 1 0 3.3 Tm /F3+0 9 Tf 12.3 TL (1,518 patients; 72.9% use) Tj T* ET
+BT 1 0 0 1 0 3.3 Tm /F3+0 9 Tf 12.3 TL (1,518 patients; 70.5% use) Tj T* ET
 Q
 Q
 q
 1 0 0 1 250 42.6 cm
 q
 .137255 .192157 .227451 rg
-BT 1 0 0 1 0 3.3 Tm /F3+0 9 Tf 12.3 TL (One configured seeded run behaves within expected range.) Tj T* ET
+BT 1 0 0 1 0 3.3 Tm /F3+0 9 Tf 12.3 TL (One seeded, empty-start run; not steady-state.) Tj T* ET
 Q
 Q
 q
@@ -12970,7 +12970,7 @@ endobj
 endobj
 201 0 obj
 <<
-/Length 5119
+/Length 5133
 >>
 stream
 q
@@ -13033,7 +13033,7 @@ q
 1 0 0 1 211 103.2 cm
 q
 .137255 .192157 .227451 rg
-BT 1 0 0 1 0 3.3 Tm /F3+0 9 Tf 12.3 TL (39 passed) Tj T* ET
+BT 1 0 0 1 0 3.3 Tm /F3+0 9 Tf 12.3 TL (40 passed) Tj T* ET
 Q
 Q
 q
@@ -13075,7 +13075,7 @@ q
 1 0 0 1 211 30.3 cm
 q
 .137255 .192157 .227451 rg
-BT 1 0 0 1 0 3.3 Tm /F3+0 9 Tf 12.3 TL (1,518 patients, 72.9% utilization) Tj T* ET
+BT 1 0 0 1 0 3.3 Tm /F3+0 9 Tf 12.3 TL (1,518 patients, 70.5% time-weighted utilization) Tj T* ET
 Q
 Q
 q
@@ -14126,106 +14126,106 @@ xref
 0003393175 00000 n 
 0003393921 00000 n 
 0003394210 00000 n 
-0003400705 00000 n 
-0003400814 00000 n 
-0003401908 00000 n 
-0003402153 00000 n 
-0003439882 00000 n 
-0003440628 00000 n 
-0003440917 00000 n 
-0003447749 00000 n 
-0003447858 00000 n 
-0003448952 00000 n 
-0003449197 00000 n 
-0003486926 00000 n 
-0003487672 00000 n 
-0003487961 00000 n 
-0003493141 00000 n 
-0003493250 00000 n 
-0003494344 00000 n 
-0003494589 00000 n 
-0003532318 00000 n 
-0003533064 00000 n 
-0003533353 00000 n 
-0003539192 00000 n 
-0003539301 00000 n 
-0003540395 00000 n 
-0003540640 00000 n 
-0003578369 00000 n 
-0003579115 00000 n 
-0003579404 00000 n 
-0003585244 00000 n 
-0003585353 00000 n 
-0003586447 00000 n 
-0003586692 00000 n 
-0003624421 00000 n 
-0003625167 00000 n 
-0003625456 00000 n 
-0003630500 00000 n 
-0003630609 00000 n 
-0003631703 00000 n 
-0003631948 00000 n 
-0003669677 00000 n 
-0003670423 00000 n 
-0003670712 00000 n 
-0003678417 00000 n 
-0003678526 00000 n 
-0003679620 00000 n 
-0003679865 00000 n 
-0003717594 00000 n 
-0003718340 00000 n 
-0003718629 00000 n 
-0003724174 00000 n 
-0003724283 00000 n 
-0003725377 00000 n 
-0003725622 00000 n 
-0003763351 00000 n 
-0003764097 00000 n 
-0003764386 00000 n 
-0003771363 00000 n 
-0003771472 00000 n 
-0003772566 00000 n 
-0003772811 00000 n 
-0003810540 00000 n 
-0003811286 00000 n 
-0003811575 00000 n 
-0003817159 00000 n 
-0003817268 00000 n 
-0003818362 00000 n 
-0003818607 00000 n 
-0003856336 00000 n 
-0003857082 00000 n 
-0003857371 00000 n 
-0003860766 00000 n 
-0003860875 00000 n 
-0003861969 00000 n 
-0003862214 00000 n 
-0003899943 00000 n 
-0003900689 00000 n 
-0003900978 00000 n 
-0003906630 00000 n 
-0003906739 00000 n 
-0003907833 00000 n 
-0003908078 00000 n 
-0003945807 00000 n 
-0003946553 00000 n 
-0003946842 00000 n 
-0003952015 00000 n 
-0003952124 00000 n 
-0003953218 00000 n 
-0003953463 00000 n 
-0003991192 00000 n 
-0003991938 00000 n 
-0003992259 00000 n 
-0003992545 00000 n 
-0003992761 00000 n 
-0003992994 00000 n 
-0003993223 00000 n 
-0004001623 00000 n 
-0004001732 00000 n 
-0004002826 00000 n 
-0004003071 00000 n 
-0004040800 00000 n 
+0003400815 00000 n 
+0003400924 00000 n 
+0003402018 00000 n 
+0003402263 00000 n 
+0003439992 00000 n 
+0003440738 00000 n 
+0003441027 00000 n 
+0003447859 00000 n 
+0003447968 00000 n 
+0003449062 00000 n 
+0003449307 00000 n 
+0003487036 00000 n 
+0003487782 00000 n 
+0003488071 00000 n 
+0003493251 00000 n 
+0003493360 00000 n 
+0003494454 00000 n 
+0003494699 00000 n 
+0003532428 00000 n 
+0003533174 00000 n 
+0003533463 00000 n 
+0003539302 00000 n 
+0003539411 00000 n 
+0003540505 00000 n 
+0003540750 00000 n 
+0003578479 00000 n 
+0003579225 00000 n 
+0003579514 00000 n 
+0003585354 00000 n 
+0003585463 00000 n 
+0003586557 00000 n 
+0003586802 00000 n 
+0003624531 00000 n 
+0003625277 00000 n 
+0003625566 00000 n 
+0003630610 00000 n 
+0003630719 00000 n 
+0003631813 00000 n 
+0003632058 00000 n 
+0003669787 00000 n 
+0003670533 00000 n 
+0003670822 00000 n 
+0003678527 00000 n 
+0003678636 00000 n 
+0003679730 00000 n 
+0003679975 00000 n 
+0003717704 00000 n 
+0003718450 00000 n 
+0003718739 00000 n 
+0003724274 00000 n 
+0003724383 00000 n 
+0003725477 00000 n 
+0003725722 00000 n 
+0003763451 00000 n 
+0003764197 00000 n 
+0003764486 00000 n 
+0003771463 00000 n 
+0003771572 00000 n 
+0003772666 00000 n 
+0003772911 00000 n 
+0003810640 00000 n 
+0003811386 00000 n 
+0003811675 00000 n 
+0003817259 00000 n 
+0003817368 00000 n 
+0003818462 00000 n 
+0003818707 00000 n 
+0003856436 00000 n 
+0003857182 00000 n 
+0003857471 00000 n 
+0003860866 00000 n 
+0003860975 00000 n 
+0003862069 00000 n 
+0003862314 00000 n 
+0003900043 00000 n 
+0003900789 00000 n 
+0003901078 00000 n 
+0003906730 00000 n 
+0003906839 00000 n 
+0003907933 00000 n 
+0003908178 00000 n 
+0003945907 00000 n 
+0003946653 00000 n 
+0003946942 00000 n 
+0003952129 00000 n 
+0003952238 00000 n 
+0003953332 00000 n 
+0003953577 00000 n 
+0003991306 00000 n 
+0003992052 00000 n 
+0003992373 00000 n 
+0003992659 00000 n 
+0003992875 00000 n 
+0003993108 00000 n 
+0003993337 00000 n 
+0004001737 00000 n 
+0004001846 00000 n 
+0004002940 00000 n 
+0004003185 00000 n 
+0004040914 00000 n 
 trailer
 <<
 /Size 218
@@ -14233,5 +14233,5 @@ trailer
 /Info 1 0 R
 >>
 startxref
-4041546
+4041660
 %%EOF

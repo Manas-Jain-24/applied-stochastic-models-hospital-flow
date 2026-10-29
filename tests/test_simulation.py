@@ -35,5 +35,24 @@ class TestSimulationAndSynthetic(unittest.TestCase):
         self.assertGreaterEqual(res["empirical_bed_utilization"], 0.0)
         self.assertLessEqual(res["empirical_bed_utilization"], 1.0)
 
+    def test_occupancy_uses_elapsed_time_including_final_interval(self):
+        class FixedArrivals:
+            def __init__(self):
+                self.intervals = iter([1.0, 100.0])
+
+            def exponential(self, scale):
+                return next(self.intervals)
+
+        sim = HospitalSimulation(
+            n_beds=1, arrival_rate_per_day=1.0, mean_los_days=3.0,
+            los_distribution="deterministic", simulation_days=10.0,
+        )
+        sim.rng = FixedArrivals()
+        result = sim.run()
+        # One bed is occupied from day 1 to day 4: 3 of 10 bed-days.
+        self.assertEqual(result["empirical_mean_occupied_beds"], 0.3)
+        self.assertEqual(result["empirical_bed_utilization"], 0.3)
+        self.assertEqual(result["max_queue_depth"], 0)
+
 if __name__ == "__main__":
     unittest.main()
