@@ -6,7 +6,6 @@ Validates empirical metrics against theoretical M/M/c and M/G/c formulas.
 import heapq
 from typing import Dict, Any, List, Optional
 import numpy as np
-import pandas as pd
 
 class HospitalSimulation:
     def __init__(
@@ -63,14 +62,19 @@ class HospitalSimulation:
         patient_counter = 1
         wait_times: List[float] = []
         total_times: List[float] = []
-        bed_occupancy_samples: List[tuple] = [] # (time, occupied_beds)
+        occupied_bed_days = 0.0
+        last_event_time = 0.0
+        max_queue_depth = 0
+        service_starts: List[float] = []
         
         while event_calendar:
             event_time, event_type, p_id = heapq.heappop(event_calendar)
-            current_time = event_time
-            
-            if current_time > self.sim_days:
+            if event_time > self.sim_days:
+                occupied_bed_days += occupied_beds * (self.sim_days - last_event_time)
                 break
+            occupied_bed_days += occupied_beds * (event_time - last_event_time)
+            current_time = event_time
+            last_event_time = event_time
                 
             if event_type == 0:
                 # ARRIVAL EVENT
@@ -83,6 +87,7 @@ class HospitalSimulation:
                 if occupied_beds < self.n_beds:
                     occupied_beds += 1
                     wait_times.append(0.0)
+                    service_starts.append(current_time)
                     service_duration = self._sample_service_time()
                     total_times.append(service_duration)
                     # Schedule departure
@@ -90,6 +95,7 @@ class HospitalSimulation:
                 else:
                     # All beds occupied -> join waiting queue
                     waiting_queue.append(current_time)
+                    max_queue_depth = max(max_queue_depth, len(waiting_queue))
                     
             elif event_type == 1:
                 # DEPARTURE EVENT
@@ -98,6 +104,7 @@ class HospitalSimulation:
                     arr_time = waiting_queue.pop(0)
                     w_q = current_time - arr_time
                     wait_times.append(w_q)
+                    service_starts.append(current_time)
                     service_duration = self._sample_service_time()
                     total_times.append(w_q + service_duration)
                     # Schedule departure
@@ -105,23 +112,18 @@ class HospitalSimulation:
                 else:
                     occupied_beds -= 1
                     
-            bed_occupancy_samples.append((current_time, occupied_beds))
-            
-        # Compute empirical statistics (ignoring initial warmup 10% to achieve steady state)
-        warmup_cutoff = int(len(wait_times) * 0.15) if len(wait_times) > 100 else 0
-        steady_waits = wait_times[warmup_cutoff:]
-        steady_totals = total_times[warmup_cutoff:]
+        # Use a fixed time warm-up; dropping a fraction of completed patients
+        # creates a demand-dependent cutoff and can bias wait estimates.
+        warmup_time = 0.15 * self.sim_days if len(wait_times) > 100 else 0.0
+        steady_waits = [w for t, w in zip(service_starts, wait_times) if t >= warmup_time]
+        steady_totals = [s for t, s in zip(service_starts, total_times) if t >= warmup_time]
         
         mean_wait_q = float(np.mean(steady_waits)) if steady_waits else 0.0
         mean_total_time = float(np.mean(steady_totals)) if steady_totals else 0.0
         delayed_ratio = float(np.mean(np.array(steady_waits) > 0.001)) if steady_waits else 0.0
         
-        # Time-weighted average occupied beds
-        if bed_occupancy_samples:
-            df_occ = pd.DataFrame(bed_occupancy_samples, columns=["time", "beds"])
-            mean_occupied = float(df_occ["beds"].mean())
-        else:
-            mean_occupied = 0.0
+        # Integrate occupancy over calendar time, including the last interval.
+        mean_occupied = occupied_bed_days / self.sim_days
             
         utilization = mean_occupied / self.n_beds
         
@@ -133,5 +135,5 @@ class HospitalSimulation:
             "empirical_prob_delay": round(delayed_ratio, 4),
             "empirical_mean_occupied_beds": round(mean_occupied, 2),
             "empirical_bed_utilization": round(utilization, 4),
-            "max_queue_depth": len(waiting_queue)
+            "max_queue_depth": max_queue_depth
         }
