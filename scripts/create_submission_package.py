@@ -12,6 +12,8 @@ OUTPUT = ROOT / "submission" / "Hospital_Patient_Flow_Submission.zip"
 EXACT = [
     "README.md", "SUBMISSION_CHECKLIST.md", "requirements.txt", "app.py",
     "reports/pdf/Hospital_Patient_Flow_ASM_Submission_Report.pdf",
+    "reports/pdf/Master_Combined_Stochastic_Hospital_Flow_Report.pdf",
+    "reports/Master_Combined_Stochastic_Hospital_Flow_Report.md",
     "reports/slides/Hospital_Patient_Flow_Submission_Presentation_v3.pptx",
     "data/synthetic/synthetic_hospital_encounters.csv",
     "partner_repo/cms_data/cms_timely_and_effective_care_hospital.csv",
