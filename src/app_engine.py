@@ -177,3 +177,4 @@ def generate_custom_executive_pdf(params: Dict[str, Any]) -> bytes:
     
     doc.build(story)
     return buf.getvalue()
+
