@@ -114,7 +114,10 @@ def proportional_bed_allocation(
     c_j = round(total_beds * (a_j / sum a_k)).
     """
     total_load = sum(d.offered_load for d in departments)
-    raw_beds = [max(d.min_beds, int(round(total_beds * (d.offered_load / total_load)))) for d in departments]
+    if total_load <= 0:
+        raw_beds = [max(d.min_beds, total_beds // max(1, len(departments))) for d in departments]
+    else:
+        raw_beds = [max(d.min_beds, int(round(total_beds * (d.offered_load / total_load)))) for d in departments]
 
     # Adjust rounding discrepancy to match total_beds exactly
     diff = total_beds - sum(raw_beds)

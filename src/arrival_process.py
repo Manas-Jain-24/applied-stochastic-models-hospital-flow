@@ -109,6 +109,8 @@ def simulate_nhpp_thinning(
     """
     rng = np.random.default_rng(random_seed)
     lambda_max = baseline_rate + amplitude
+    if lambda_max <= 0.0 or simulation_hours <= 0.0:
+        return np.array([], dtype=float)
     
     current_time = 0.0
     accepted_arrivals: List[float] = []

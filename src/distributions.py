@@ -18,6 +18,24 @@ def compute_empirical_moments(data: np.ndarray) -> Dict[str, float]:
     If cv^2 < 1 -> Low variance / Regular.
     """
     clean_data = data[~np.isnan(data) & (data > 0)]
+    if len(clean_data) == 0:
+        return {
+            "n_samples": 0,
+            "mean": 0.0,
+            "variance": 0.0,
+            "std_dev": 0.0,
+            "cv2": 0.0,
+            "is_memoryless_candidate": False
+        }
+    if len(clean_data) == 1:
+        return {
+            "n_samples": 1,
+            "mean": round(float(clean_data[0]), 4),
+            "variance": 0.0,
+            "std_dev": 0.0,
+            "cv2": 0.0,
+            "is_memoryless_candidate": False
+        }
     mean_val = float(np.mean(clean_data))
     var_val = float(np.var(clean_data, ddof=1))
     std_val = float(np.std(clean_data, ddof=1))

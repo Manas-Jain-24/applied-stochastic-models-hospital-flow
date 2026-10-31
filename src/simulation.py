@@ -18,6 +18,15 @@ class HospitalSimulation:
         simulation_days: float = 90.0,
         random_seed: int = 42
     ):
+        if n_beds <= 0:
+            raise ValueError(f"n_beds must be positive, got {n_beds}")
+        if arrival_rate_per_day <= 0:
+            raise ValueError(f"arrival_rate_per_day must be positive, got {arrival_rate_per_day}")
+        if mean_los_days <= 0:
+            raise ValueError(f"mean_los_days must be positive, got {mean_los_days}")
+        if simulation_days <= 0:
+            raise ValueError(f"simulation_days must be positive, got {simulation_days}")
+            
         self.n_beds = n_beds
         self.arrival_rate = arrival_rate_per_day
         self.mean_los = mean_los_days
